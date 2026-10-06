@@ -13,6 +13,8 @@ import {
   MessageSquare,
   ChevronRight,
   Layers,
+  LayoutGrid,
+  Table as TableIcon,
 } from 'lucide-react';
 import { feedbackList, themeInsights } from '../../data/feedbackData';
 import { FeedbackSource, ThemeInsight } from '../../types/feedback';
@@ -28,6 +30,7 @@ function FeedbackExplorerContent() {
   );
   const [selectedTheme, setSelectedTheme] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<'all' | '7d' | '30d' | '90d'>('all');
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
 
   const [drilldownTheme, setDrilldownTheme] = useState<ThemeInsight | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -135,7 +138,7 @@ function FeedbackExplorerContent() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `leeg_career_feedback_${Date.now()}.csv`);
+    link.setAttribute('download', `leeg_feedback_records_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -158,53 +161,80 @@ function FeedbackExplorerContent() {
     dateFilter !== 'all';
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
+    <div className="space-y-6 animate-in fade-in duration-200">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-slate-200/80">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800">
-              Voice of the Member
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200/60">
+              Customer Intelligence Repository
             </span>
-            <span className="text-slate-400 text-xs">•</span>
-            <span className="text-xs text-slate-500 font-medium">Feedback Repository</span>
+            <span className="text-slate-300 text-xs">•</span>
+            <span className="text-xs text-slate-500 font-medium">12 Verbatim Records</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Feedback Explorer
           </h1>
-          <p className="text-sm text-slate-500 mt-1.5 max-w-2xl leading-relaxed">
-            Browse and filter through individual member quotes and feedback notes across all Leeg Career OS touchpoints.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
+            Search, filter, and inspect verbatim member feedback and user research interviews across the Career OS ecosystem.
           </p>
         </div>
 
-        <button
-          onClick={exportFilteredCSV}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all shadow-xs self-start sm:self-auto"
-        >
-          <Download className="w-4 h-4 text-slate-400" />
-          <span>Export Quotes (.CSV)</span>
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={exportFilteredCSV}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 transition-all shadow-xs"
+          >
+            <Download className="w-3.5 h-3.5 text-slate-400" />
+            <span>Export CSV</span>
+          </button>
+
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80">
+            <button
+              onClick={() => setViewMode('card')}
+              className={`p-1.5 rounded-md text-xs font-medium transition-all ${
+                viewMode === 'card'
+                  ? 'bg-white text-purple-700 shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+              title="Card View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-1.5 rounded-md text-xs font-medium transition-all ${
+                viewMode === 'table'
+                  ? 'bg-white text-purple-700 shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+              title="Table View"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Clean Filter Control Panel */}
-      <div className="p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-5">
-        {/* Search Bar & Dropdowns */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+      {/* Unified Filter Panel */}
+      <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+        {/* Search Bar & Dropdowns Row */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
           <div className="md:col-span-6 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by keywords, member role, quote, or goal..."
-              className="w-full pl-11 pr-8 py-3 text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              placeholder="Search by quote keywords, member role, or extracted goal..."
+              className="w-full pl-9 pr-7 py-2 text-xs bg-slate-50/80 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all placeholder:text-slate-400"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -213,7 +243,7 @@ function FeedbackExplorerContent() {
             <select
               value={selectedTheme}
               onChange={(e) => setSelectedTheme(e.target.value)}
-              className="w-full py-3 px-4 text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 text-slate-700 font-medium"
+              className="w-full py-2 px-3 text-xs bg-slate-50/80 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-purple-500 text-slate-700 font-medium"
             >
               <option value="all">All Career Themes ({allThemes.length})</option>
               {allThemes.map((t) => (
@@ -228,7 +258,7 @@ function FeedbackExplorerContent() {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value as any)}
-              className="w-full py-3 px-4 text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 text-slate-700 font-medium"
+              className="w-full py-2 px-3 text-xs bg-slate-50/80 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-purple-500 text-slate-700 font-medium"
             >
               <option value="all">All Dates</option>
               <option value="7d">Past 7 Days</option>
@@ -238,22 +268,32 @@ function FeedbackExplorerContent() {
           </div>
         </div>
 
-        {/* Source Pills */}
+        {/* Source Filter Chips */}
         <div>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-            Filter by Sample Source
-          </span>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Filter by Intake Source
+            </span>
+            {hasActiveFilters && (
+              <button
+                onClick={clearAllFilters}
+                className="text-[11px] font-medium text-purple-600 hover:text-purple-800"
+              >
+                Clear all filters
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
             {allSources.map((src) => {
               const active = selectedSources.includes(src);
               return (
                 <button
                   key={src}
                   onClick={() => toggleSource(src)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-all flex items-center gap-1 ${
                     active
-                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
                   }`}
                 >
                   <span>{src}</span>
@@ -261,111 +301,170 @@ function FeedbackExplorerContent() {
                 </button>
               );
             })}
-
-            {hasActiveFilters && (
-              <button
-                onClick={clearAllFilters}
-                className="text-xs font-semibold text-purple-700 hover:underline ml-2"
-              >
-                Reset filters
-              </button>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Count indicator */}
-      <div className="flex items-center justify-between text-xs text-slate-400 px-1">
+      {/* Result Count Status */}
+      <div className="flex items-center justify-between text-xs text-slate-500 px-0.5">
         <span>
-          Showing <strong className="text-slate-800 font-bold">{filteredList.length}</strong> of{' '}
-          {feedbackList.length} sample quotes
+          Showing <strong className="text-slate-900 font-semibold">{filteredList.length}</strong> of{' '}
+          {feedbackList.length} records
         </span>
+        {hasActiveFilters && (
+          <span className="text-purple-700 font-medium text-[11px]">Active filters applied</span>
+        )}
       </div>
 
-      {/* Feedback Cards Grid */}
-      {filteredList.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
-          <h3 className="text-base font-bold text-slate-900">No matching quotes found</h3>
+      {/* Empty State */}
+      {filteredList.length === 0 && (
+        <div className="p-10 text-center bg-white rounded-xl border border-slate-200 space-y-2.5">
+          <h3 className="text-sm font-bold text-slate-900">No matching customer records found</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Try clearing your search query or selecting a different career theme.
+            Try adjusting your search query, selecting "All Themes", or clearing the intake source filter.
           </p>
           <button
             onClick={clearAllFilters}
-            className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700"
+            className="px-3.5 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors"
           >
             Clear Filters
           </button>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      )}
+
+      {/* Card Grid View */}
+      {viewMode === 'card' && filteredList.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredList.map((item) => (
             <div
               key={item.id}
-              className="p-6 rounded-3xl bg-white border border-slate-200/90 hover:border-purple-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group"
+              className="p-4 rounded-xl bg-white border border-slate-200/90 hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3 group"
             >
               <div>
                 {/* Header */}
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-2.5">
                     <img
                       src={item.author.avatar}
                       alt={item.author.name}
-                      className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                      className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
                     />
                     <div>
-                      <span className="text-sm font-bold text-slate-900 block">
+                      <span className="text-xs font-bold text-slate-900 block leading-tight">
                         {item.author.name}
                       </span>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-[11px] text-slate-500">
                         {item.author.role} • {item.author.location}
                       </span>
                     </div>
                   </div>
 
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200/70">
                     {item.source}
                   </span>
                 </div>
 
-                {/* Quote Box */}
-                <p className="text-sm text-slate-800 italic font-serif leading-relaxed bg-slate-50/70 p-4 rounded-2xl border border-slate-100 mb-3">
-                  {item.rawQuote}
-                </p>
+                {/* Verbatim Quote with clean left border */}
+                <div className="text-xs text-slate-800 italic leading-relaxed border-l-2 border-purple-500 bg-slate-50/60 p-3 rounded-r-lg mb-2.5">
+                  "{item.rawQuote.replace(/^"|"$/g, '')}"
+                </div>
 
-                {/* Theme & Need */}
-                <div className="space-y-1.5">
+                {/* Theme & Extracted Goal */}
+                <div className="space-y-1">
                   <button
                     onClick={() => openDrilldown(item.theme)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 hover:text-purple-900 transition-colors"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 hover:text-purple-900 transition-colors"
                   >
-                    <Layers className="w-3.5 h-3.5 text-purple-500" />
+                    <Layers className="w-3 h-3 text-purple-500" />
                     <span>{item.theme}</span>
                   </button>
 
-                  <p className="text-xs text-slate-500 leading-normal">
-                    <span className="font-semibold text-slate-700">Goal:</span> {item.userGoal}
+                  <p className="text-[11px] text-slate-600 leading-normal">
+                    <span className="font-semibold text-slate-900">Extracted Goal:</span> {item.userGoal}
                   </p>
                 </div>
               </div>
 
-              {/* Card Footer */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-400 text-[11px]">
+              {/* Footer */}
+              <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">
                   {new Date(item.date).toLocaleDateString('en-CA', {
                     month: 'short',
                     day: 'numeric',
-                  })}
+                  })} • {item.careerProductArea}
                 </span>
 
                 <Link
                   href={`/feedback/${item.id}`}
-                  className="font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
+                  className="font-semibold text-purple-600 hover:text-purple-800 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform"
                 >
-                  View Details <ChevronRight className="w-3.5 h-3.5" />
+                  Inspect <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Table View */}
+      {viewMode === 'table' && filteredList.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th className="py-2.5 px-4">Member / Role</th>
+                  <th className="py-2.5 px-4">Source</th>
+                  <th className="py-2.5 px-4">Verbatim Quote Snippet</th>
+                  <th className="py-2.5 px-4">Career Theme</th>
+                  <th className="py-2.5 px-4">Date</th>
+                  <th className="py-2.5 px-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredList.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-2.5 px-4 whitespace-nowrap">
+                      <div className="font-semibold text-slate-900">{item.author.name}</div>
+                      <div className="text-[10px] text-slate-500">{item.author.role}</div>
+                    </td>
+                    <td className="py-2.5 px-4 whitespace-nowrap">
+                      <span className="font-medium text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[10px] border border-slate-200/60">
+                        {item.source}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-4 max-w-sm">
+                      <p className="text-slate-700 italic truncate font-serif">
+                        "{item.rawQuote.replace(/^"|"$/g, '')}"
+                      </p>
+                    </td>
+                    <td className="py-2.5 px-4 whitespace-nowrap">
+                      <button
+                        onClick={() => openDrilldown(item.theme)}
+                        className="text-purple-700 font-medium hover:underline text-[11px]"
+                      >
+                        {item.theme}
+                      </button>
+                    </td>
+                    <td className="py-2.5 px-4 whitespace-nowrap text-slate-400 text-[11px]">
+                      {new Date(item.date).toLocaleDateString('en-CA', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </td>
+                    <td className="py-2.5 px-4 text-right whitespace-nowrap">
+                      <Link
+                        href={`/feedback/${item.id}`}
+                        className="font-medium text-purple-600 hover:text-purple-800"
+                      >
+                        Inspect
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -383,7 +482,7 @@ export default function FeedbackExplorerPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-12 text-center text-slate-500 text-sm">
+        <div className="p-10 text-center text-slate-500 text-xs">
           Loading feedback explorer...
         </div>
       }
