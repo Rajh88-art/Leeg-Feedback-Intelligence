@@ -148,7 +148,7 @@ export default function ProfilePage() {
       {/* Quick Navigation Footer */}
       <div className="flex items-center justify-between pt-1 text-xs">
         <Link
-          href="/"
+          href="/dashboard"
           className="font-medium text-slate-600 hover:text-slate-900"
         >
           ← Return to Dashboard

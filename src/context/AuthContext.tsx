@@ -18,6 +18,8 @@ interface AuthContextType {
   isConfigured: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null; message?: string }>;
+  signInWithOAuth: (provider: 'google' | 'github') => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null; message?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -248,6 +250,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithOAuth = async (
+    provider: 'google' | 'github'
+  ): Promise<{ error: string | null }> => {
+    try {
+      if (configured) {
+        const redirectTo = `${window.location.origin}/auth/callback`;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo,
+          },
+        });
+        if (error) {
+          return { error: error.message };
+        }
+        return { error: null };
+      }
+      return {
+        error: `Supabase OAuth for ${provider} requires OAuth credentials configured in your Supabase dashboard.`,
+      };
+    } catch (err: any) {
+      return {
+        error: err?.message || `Failed to initiate ${provider} authentication.`,
+      };
+    }
+  };
+
+  const resetPassword = async (
+    email: string
+  ): Promise<{ error: string | null; message?: string }> => {
+    try {
+      if (!email.trim()) {
+        return { error: 'Please enter your work email address.' };
+      }
+      if (configured) {
+        const redirectTo = `${window.location.origin}/login?mode=reset`;
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo,
+        });
+        if (error) {
+          return { error: error.message };
+        }
+        return {
+          error: null,
+          message:
+            'Password recovery email sent! Please check your inbox for the reset link.',
+        };
+      }
+      return {
+        error: null,
+        message:
+          'Password recovery link sent! (When Supabase is connected, a reset email will be delivered).',
+      };
+    } catch (err: any) {
+      return { error: err?.message || 'Failed to send password recovery email.' };
+    }
+  };
+
   const signOut = async () => {
     try {
       if (configured) {
@@ -271,6 +331,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isConfigured: configured,
         signIn,
         signUp,
+        signInWithOAuth,
+        resetPassword,
         signOut,
       }}
     >

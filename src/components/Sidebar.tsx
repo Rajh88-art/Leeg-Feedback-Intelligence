@@ -18,11 +18,12 @@ import {
   LogOut,
   User,
 } from 'lucide-react';
+import LeegLogo from './LeegLogo';
 
 const navigationItems = [
   {
     name: 'Dashboard',
-    href: '/',
+    href: '/dashboard',
     icon: LayoutDashboard,
     badge: null,
   },
@@ -82,7 +83,7 @@ export default function Sidebar() {
   };
 
   const isActive = (href: string) => {
-    if (href === '/') return pathname === '';
+    if (href === '/dashboard') return pathname === '/dashboard';
     if (href === '/feedback/FB-201') return pathname.startsWith('/feedback/FB-');
     return pathname.startsWith(href);
   };
@@ -92,9 +93,7 @@ export default function Sidebar() {
       {/* Mobile Top Bar */}
       <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-[#0c111d] border-b border-slate-800 sticky top-0 z-40">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
-            L
-          </div>
+          <LeegLogo size={28} />
           <div className="flex items-center gap-1.5">
             <span className="font-semibold text-white text-sm tracking-tight">Leeg</span>
             <span className="text-[11px] text-slate-400 font-normal">Feedback Intelligence</span>
@@ -125,10 +124,8 @@ export default function Sidebar() {
       >
         {/* Brand Header */}
         <div className="p-5 border-b border-slate-800/80">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center text-white font-black text-sm shadow-xs group-hover:bg-purple-500 transition-colors">
-              L
-            </div>
+          <Link href="/dashboard" className="flex items-center gap-3 group">
+            <LeegLogo size={32} />
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="font-semibold text-white text-sm tracking-tight">Leeg</span>

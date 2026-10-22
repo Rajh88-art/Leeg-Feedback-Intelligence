@@ -7,10 +7,11 @@ import Navbar from './Navbar';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === '/login';
+  const isPublicPage =
+    pathname === '/' || pathname === '/login' || pathname.startsWith('/auth');
 
-  if (isLoginPage) {
-    return <main className="min-h-screen bg-[#f8fafc]">{children}</main>;
+  if (isPublicPage) {
+    return <div className="min-h-screen bg-[#f8fafc] w-full">{children}</div>;
   }
 
   return (

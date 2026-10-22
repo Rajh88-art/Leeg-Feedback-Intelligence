@@ -71,14 +71,17 @@ export async function middleware(request: NextRequest) {
   }
 
   // 3. Protected route enforcement
-  if (!isAuthenticated && !isLoginPage) {
+  const isPublicRoute =
+    pathname === '/' || pathname === '/login' || pathname.startsWith('/auth');
+
+  if (!isAuthenticated && !isPublicRoute) {
     const redirectUrl = new URL('/login', request.url);
     return NextResponse.redirect(redirectUrl);
   }
 
-  // 4. Redirect logged in users away from /login to dashboard
-  if (isAuthenticated && isLoginPage) {
-    const redirectUrl = new URL('/', request.url);
+  // 4. Redirect logged in users away from /login to /dashboard
+  if (isAuthenticated && pathname === '/login') {
+    const redirectUrl = new URL('/dashboard', request.url);
     return NextResponse.redirect(redirectUrl);
   }
 
