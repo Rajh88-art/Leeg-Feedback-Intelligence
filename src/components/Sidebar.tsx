@@ -31,17 +31,17 @@ const navigationItems = [
     name: 'Feedback Explorer',
     href: '/feedback',
     icon: MessageSquare,
-    badge: '12 Records',
+    badge: '20 Records',
   },
   {
     name: 'AI Insights',
     href: '/ai-insights',
     icon: Sparkles,
-    badge: '6 Themes',
+    badge: '7 Themes',
   },
   {
     name: 'Feedback Detail',
-    href: '/feedback/FB-201',
+    href: '/feedback/1',
     icon: FileText,
     badge: null,
   },
@@ -54,12 +54,12 @@ const navigationItems = [
 ];
 
 const sampleSources = [
-  { name: 'Slack Community', count: '18 items' },
-  { name: 'Member Inquiries', count: '11 items' },
-  { name: 'User Interviews', count: '8 items' },
-  { name: 'LinkedIn DMs', count: '5 items' },
-  { name: 'Instagram Notes', count: '4 items' },
-  { name: 'In-app Analytics', count: '2 items' },
+  { name: 'Slack', count: 'Live' },
+  { name: 'Gmail', count: 'Live' },
+  { name: 'LinkedIn', count: 'Live' },
+  { name: 'Instagram', count: 'Live' },
+  { name: 'User Research', count: 'Live' },
+  { name: 'Product Analytics', count: 'Live' },
 ];
 
 export default function Sidebar() {
@@ -84,7 +84,7 @@ export default function Sidebar() {
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
-    if (href === '/feedback/FB-201') return pathname.startsWith('/feedback/FB-');
+    if (href === '/feedback/1') return /^\/feedback\/\d+$/.test(pathname);
     return pathname.startsWith(href);
   };
 
