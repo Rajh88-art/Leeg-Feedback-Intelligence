@@ -17,8 +17,9 @@ RULES — YOU MUST FOLLOW THESE EXACTLY:
 3. If you are uncertain, say so explicitly. Do not fabricate evidence.
 4. Treat serious one-off concerns (especially privacy, security, or access issues) as high importance even if only one record describes them.
 5. Base ALL claims on the feedback records provided. Do not use external knowledge to fill gaps.
-6. Keep each issue summary under 150 words.
+6. Keep each issue summary under 150 words (aim for 40-80 words for clarity).
 7. Recommend specific, realistic product actions — not vague suggestions.
+8. Do not output <think> blocks, chain-of-thought reasoning, or markdown fences. Start your response immediately with the opening { character.
 
 OUTPUT FORMAT — respond ONLY with a valid JSON object in this exact structure (no markdown, no commentary outside the JSON):
 {
