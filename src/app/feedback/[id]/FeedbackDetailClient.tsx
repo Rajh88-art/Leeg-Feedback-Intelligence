@@ -130,6 +130,8 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
+      case 'critical':
+        return 'bg-red-100 text-red-800 border-red-300 font-bold';
       case 'high':
         return 'bg-rose-50 text-rose-700 border-rose-200/80';
       case 'medium':

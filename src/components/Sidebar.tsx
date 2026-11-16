@@ -17,6 +17,8 @@ import {
   ExternalLink,
   LogOut,
   User,
+  BookOpen,
+  BrainCircuit,
 } from 'lucide-react';
 import LeegLogo from './LeegLogo';
 
@@ -38,6 +40,18 @@ const navigationItems = [
     href: '/ai-insights',
     icon: Sparkles,
     badge: '7 Themes',
+  },
+  {
+    name: 'AI Analysis',
+    href: '/ai-analysis',
+    icon: BrainCircuit,
+    badge: 'Live AI',
+  },
+  {
+    name: 'Research Context',
+    href: '/research',
+    icon: BookOpen,
+    badge: 'External',
   },
   {
     name: 'Feedback Detail',
@@ -84,6 +98,7 @@ export default function Sidebar() {
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
+    if (href === '/feedback') return pathname === '/feedback';
     if (href === '/feedback/1') return /^\/feedback\/\d+$/.test(pathname);
     return pathname.startsWith(href);
   };

@@ -90,10 +90,11 @@ export async function fetchAllFeedbackData(): Promise<{
       sentiment = 'needs_attention';
     }
 
-    // Normalizing priority
+    // Normalizing priority — preserves 'critical' from Supabase
     const rawPrio = (f.priority || '').toLowerCase();
-    let priority: 'high' | 'medium' | 'low' = 'medium';
-    if (rawPrio === 'high' || rawPrio === 'urgent') priority = 'high';
+    let priority: 'critical' | 'high' | 'medium' | 'low' = 'medium';
+    if (rawPrio === 'critical') priority = 'critical';
+    else if (rawPrio === 'high' || rawPrio === 'urgent') priority = 'high';
     else if (rawPrio === 'low') priority = 'low';
 
     return {
@@ -182,8 +183,9 @@ export async function fetchAIInsightsData(): Promise<{
     }
 
     const rawPrio = (ins.priority || '').toLowerCase();
-    let priority: 'high' | 'medium' | 'low' = 'medium';
-    if (rawPrio === 'high' || rawPrio === 'urgent') priority = 'high';
+    let priority: 'critical' | 'high' | 'medium' | 'low' = 'medium';
+    if (rawPrio === 'critical') priority = 'critical';
+    else if (rawPrio === 'high' || rawPrio === 'urgent') priority = 'high';
     else if (rawPrio === 'low') priority = 'low';
 
     return {
@@ -247,8 +249,9 @@ export async function fetchFeedbackRecordById(
   }
 
   const rawPrio = (f.priority || '').toLowerCase();
-  let priority: 'high' | 'medium' | 'low' = 'medium';
-  if (rawPrio === 'high' || rawPrio === 'urgent') priority = 'high';
+  let priority: 'critical' | 'high' | 'medium' | 'low' = 'medium';
+  if (rawPrio === 'critical') priority = 'critical';
+  else if (rawPrio === 'high' || rawPrio === 'urgent') priority = 'high';
   else if (rawPrio === 'low') priority = 'low';
 
   return {
@@ -291,7 +294,7 @@ export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
   // Sort sources by count descending
   sourcesBreakdown.sort((a, b) => b.count - a.count);
 
-  const flagged = feedback.filter((f) => f.isFlagged || f.priority === 'high');
+  const flagged = feedback.filter((f) => f.isFlagged || f.priority === 'high' || f.priority === 'critical');
 
   // Most recent feedback (by date descending or id descending)
   const recent = [...feedback].sort(

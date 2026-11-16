@@ -173,6 +173,11 @@ export default function ThemeDrilldownModal({
                             Flagged Friction
                           </span>
                         )}
+                        {item.priority === 'critical' && (
+                          <span className="text-[10px] font-bold text-red-800 bg-red-100 px-1.5 py-0.5 rounded border border-red-300">
+                            Critical Priority
+                          </span>
+                        )}
                         {item.priority === 'high' && (
                           <span className="text-[10px] font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
                             High Priority

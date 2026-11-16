@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
@@ -243,6 +243,8 @@ function FeedbackExplorerContent() {
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
+      case 'critical':
+        return 'bg-red-100 text-red-800 border-red-300';
       case 'high':
         return 'bg-rose-50 text-rose-700 border-rose-200/80';
       case 'medium':

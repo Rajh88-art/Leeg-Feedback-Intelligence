@@ -61,7 +61,7 @@ export interface EnrichedFeedback {
   themeId?: number;
   themes: { id: number; name: string }[];
   sentiment: 'positive' | 'neutral' | 'needs_attention';
-  priority: 'high' | 'medium' | 'low';
+  priority: 'critical' | 'high' | 'medium' | 'low';
   date: string;
   isFlagged: boolean;
   sourceId?: number;
@@ -82,7 +82,7 @@ export interface EnrichedAIInsight {
   title: string;
   summary: string;
   insightType: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: 'critical' | 'high' | 'medium' | 'low';
   themeId?: number;
   themeName: string;
   feedbackId?: number;

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -59,6 +59,8 @@ export default function AIInsightsPage() {
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
+      case 'critical':
+        return 'bg-red-100 text-red-800 border-red-300';
       case 'high':
         return 'bg-rose-50 text-rose-700 border-rose-200/80';
       case 'medium':
@@ -137,11 +139,17 @@ export default function AIInsightsPage() {
           <Sparkles className="w-3.5 h-3.5 text-purple-600" />
           <span>Executive Member Voice Digest • VP of Product Briefing</span>
         </div>
+        <div className="flex items-center gap-2 flex-wrap mb-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+            Synthetic Demonstration Data
+          </span>
+          <span className="text-[10px] text-slate-400">Pre-generated from seeded Supabase records &middot; Not live AI output</span>
+        </div>
         <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-          Strong Traction in Interview Preparation & Portfolio Building; Access & Mobile Latency Signal Triage
+          Career Development Momentum Strong; Critical Privacy Concern &amp; Mobile Reliability Flagged for Triage
         </h2>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-4xl">
-          Across the <strong>20 customer touchpoints</strong> and <strong>6 AI synthesized clusters</strong> in Supabase, member engagement is heavily centered around the <strong>AI Interview Coach</strong> and <strong>Resume ATS Scoring</strong>. Key friction items flagged for immediate product triage include <strong>Safari mobile audio lag</strong>, <strong>localized Canadian salary benchmarks</strong>, and critical access permissions highlighted in <strong>Feedback #10</strong>.
+          Across <strong>20 seeded feedback records</strong> and <strong>7 product themes</strong>, member engagement clusters around <strong>career development progress</strong>, <strong>AI interview preparation</strong>, and <strong>mentorship interest</strong>. Members report meaningful gains using AI-assisted resume scoring and mock interview coaching. A critical one-off concern in <strong>Feedback #10</strong> &mdash; involving account access restrictions and privacy permissions &mdash; is escalated as a high-severity product risk and must not be overlooked despite being a single data point. Supporting signals also identify recurring <strong>mobile reliability friction</strong> (audio lag on iOS) and unmet demand for <strong>structured mentorship matching</strong>.
         </p>
       </div>
 

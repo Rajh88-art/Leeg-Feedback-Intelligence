@@ -263,8 +263,16 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 text-[10px]">
-                  Priority: {issue.priority.toUpperCase()}
+                <span
+                  className={`text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded border ${
+                    issue.priority === 'critical'
+                      ? 'bg-red-100 text-red-800 border-red-300 font-bold'
+                      : issue.priority === 'high'
+                      ? 'bg-rose-50 text-rose-700 border-rose-200/80'
+                      : 'bg-slate-100 text-slate-600 border-slate-200/80'
+                  }`}
+                >
+                  {issue.priority} Priority
                 </span>
                 <Link
                   href={`/feedback/${issue.id}`}
