@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import {
   Sparkles,
   AlertTriangle,
@@ -77,6 +78,7 @@ function ConfidenceBadge({ confidence }: { confidence: string }) {
 }
 
 export default function AIAnalysisPage() {
+  const { session } = useAuth();
   const [result, setResult] = useState<AnalysisResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +92,14 @@ export default function AIAnalysisPage() {
     setSimulated(false);
 
     try {
-      const res = await fetch('/api/analyze-feedback', { method: 'POST' });
+      const headers: Record<string, string> = {};
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      const res = await fetch('/api/analyze-feedback', {
+        method: 'POST',
+        headers,
+      });
       const data: AnalysisResponse = await res.json();
 
       if (!res.ok || data.error) {

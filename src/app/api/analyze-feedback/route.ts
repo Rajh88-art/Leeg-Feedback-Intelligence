@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { ANALYSIS_PROMPT } from '@/lib/ai/prompts';
 
@@ -52,43 +53,50 @@ function shouldSimulateFailure(userEmail: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  // ---- 1. Require authentication (server-side) ----
+  // ---- 1. Require verified Supabase authentication (server-side) ----
+  // Only a genuine, cryptographically verified Supabase Auth session is accepted.
+  // Unsigned client cookies (e.g. leeg_auth_session) are rejected.
   let userId = '';
   let userEmail = '';
   let supabaseSession: any = null;
 
   try {
     const supabase = await createClient();
+    const authHeader = request.headers.get('authorization');
+    const bearerToken = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : undefined;
+
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+      error: authError,
+    } = bearerToken
+      ? await supabase.auth.getUser(bearerToken)
+      : await supabase.auth.getUser();
 
-    if (user?.email) {
-      userId = user.id;
-      userEmail = user.email;
-    } else {
-      // Check fallback auth cookie (for demo/development sessions)
-      const demoCookie = request.cookies.get('leeg_auth_session');
-      if (demoCookie?.value) {
-        try {
-          const parsed = JSON.parse(decodeURIComponent(demoCookie.value));
-          if (parsed?.email) {
-            userEmail = parsed.email;
-            userId = parsed.id || 'demo_user';
-          }
-        } catch {
-          // invalid cookie format
-        }
-      }
-    }
-
-    if (!userId) {
+    if (authError || !user) {
       return NextResponse.json(
         { error: 'Authentication required. Please sign in to use AI Analysis.' },
         { status: 401 }
       );
     }
-    supabaseSession = supabase;
+
+    userId = user.id;
+    userEmail = user.email || 'authenticated-user';
+
+    if (bearerToken) {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+      supabaseSession = createSupabaseClient(url, anonKey, {
+        global: {
+          headers: {
+            Authorization: `Bearer ${bearerToken}`,
+          },
+        },
+      });
+    } else {
+      supabaseSession = supabase;
+    }
   } catch (authErr) {
     console.error('[AI Analysis] Auth check failed:', authErr);
     return NextResponse.json(

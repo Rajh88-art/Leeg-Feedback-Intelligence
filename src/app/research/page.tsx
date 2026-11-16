@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import {
   Search,
   ExternalLink,
@@ -51,6 +52,7 @@ interface SearchResponse {
 }
 
 export default function ResearchPage() {
+  const { session } = useAuth();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ResearchResult[]>([]);
   const [meta, setMeta] = useState<{
@@ -74,9 +76,13 @@ export default function ResearchPage() {
     setSimulated(false);
 
     try {
+      const headers: Record<string, string> = {};
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
       const res = await fetch(
         `/api/research?q=${encodeURIComponent(q)}`,
-        { method: 'GET' }
+        { method: 'GET', headers }
       );
       const data: SearchResponse = await res.json();
 

@@ -35,10 +35,43 @@ function shouldSimulateFailure(userEmail: string): boolean {
 }
 
 export async function GET(request: NextRequest) {
+  // ---- 1. Require verified Supabase authentication (server-side) ----
+  // Only a genuine, cryptographically verified Supabase Auth session is accepted.
+  // Unsigned client cookies (e.g. leeg_auth_session) are rejected.
+  let userEmail = '';
+  try {
+    const supabase = await createClient();
+    const authHeader = request.headers.get('authorization');
+    const bearerToken = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : undefined;
+
+    const {
+      data: { user },
+      error: authError,
+    } = bearerToken
+      ? await supabase.auth.getUser(bearerToken)
+      : await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please sign in to use Research.' },
+        { status: 401 }
+      );
+    }
+    userEmail = user.email || 'authenticated-user';
+  } catch (authErr) {
+    console.error('[Research API] Auth check failed:', authErr);
+    return NextResponse.json(
+      { error: 'Authentication check failed. Please refresh and try again.' },
+      { status: 401 }
+    );
+  }
+
+  // ---- 2. Validate input ----
   const { searchParams } = new URL(request.url);
   const rawQuery = (searchParams.get('q') || '').trim();
 
-  // ---- 1. Validate input ----
   if (!rawQuery) {
     return NextResponse.json(
       { error: 'Missing search query. Provide ?q=your+topic' },
@@ -49,45 +82,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { error: `Query too long. Max ${MAX_QUERY_LEN} characters.` },
       { status: 400 }
-    );
-  }
-
-  // ---- 2. Require authentication (server-side) ----
-  let userEmail = 'anonymous';
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (user?.email) {
-      userEmail = user.email;
-    } else {
-      // Check fallback auth cookie (for demo/development sessions)
-      const demoCookie = request.cookies.get('leeg_auth_session');
-      if (demoCookie?.value) {
-        try {
-          const parsed = JSON.parse(decodeURIComponent(demoCookie.value));
-          if (parsed?.email) {
-            userEmail = parsed.email;
-          }
-        } catch {
-          // invalid cookie format
-        }
-      }
-    }
-
-    if (userEmail === 'anonymous') {
-      return NextResponse.json(
-        { error: 'Authentication required. Please sign in to use Research.' },
-        { status: 401 }
-      );
-    }
-  } catch (authErr) {
-    console.error('[Research API] Auth check failed:', authErr);
-    return NextResponse.json(
-      { error: 'Authentication check failed. Please refresh and try again.' },
-      { status: 401 }
     );
   }
 

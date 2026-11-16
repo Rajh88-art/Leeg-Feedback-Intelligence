@@ -70,9 +70,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3. Protected route enforcement
+  // 3. Protected route enforcement (API routes enforce their own 401 JSON auth)
   const isPublicRoute =
-    pathname === '/' || pathname === '/login' || pathname.startsWith('/auth');
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/api/');
 
   if (!isAuthenticated && !isPublicRoute) {
     const redirectUrl = new URL('/login', request.url);
