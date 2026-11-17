@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
   Search,
@@ -11,7 +10,6 @@ import {
   Loader2,
   RefreshCw,
   Tag,
-  ArrowLeft,
   Info,
   ChevronDown,
   ChevronUp,
@@ -99,7 +97,7 @@ export default function ResearchPage() {
         source: data.source,
         attribution: data.attribution,
       });
-    } catch (err: any) {
+    } catch {
       setError(
         'Could not reach the research API. Check your connection and try again.'
       );
@@ -119,92 +117,85 @@ export default function ResearchPage() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[#DCE4DD]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200/60 flex items-center gap-1">
-              <Database className="w-3 h-3 text-blue-600" />
-              External Research
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#123D32] bg-[#EFF3EF] px-2 py-0.5 rounded border border-[#CED9D0] flex items-center gap-1">
+              <Database className="w-3 h-3 text-[#123D32]" />
+              External OpenAlex API
             </span>
-            <span className="text-slate-300 text-xs">•</span>
-            <span className="text-xs text-slate-500 font-medium">
-              Powered by OpenAlex Academic Search
+            <span className="text-[#9BA8A0] text-xs">•</span>
+            <span className="text-xs text-[#53615A] font-medium">
+              Independent Academic Literature
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            Research Context
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#161B19] tracking-tight">
+            External Research Context
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-            Search published academic and industry research relevant to Leeg product themes. This data
-            comes from an <strong>external open-access API</strong> (OpenAlex) — entirely separate from
-            Leeg&apos;s customer feedback database.
-          </p>
         </div>
       </div>
 
-      {/* Important distinction notice */}
-      <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200/70">
-        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-blue-900 leading-relaxed">
-          <strong>External Research ≠ Customer Feedback.</strong> Results below are published
-          academic papers and reports retrieved in real time from{' '}
+      {/* Concise distinction notice */}
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-[#EFF3EF] border border-[#CED9D0]">
+        <Info className="w-4 h-4 text-[#123D32] shrink-0 mt-0.5" />
+        <div className="text-xs text-[#161B19] leading-relaxed">
+          <strong>External Research ≠ Customer Feedback:</strong> Results below are published academic papers retrieved live via our server route (<code>/api/research</code>) from{' '}
           <a
             href="https://openalex.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline font-medium hover:text-blue-700"
+            className="underline font-semibold text-[#123D32]"
           >
             OpenAlex.org
           </a>
-          . They are not Leeg customer records. Use them to understand broader industry context
-          around issues your customers are raising.
+          , independent of Leeg&apos;s Supabase feedback database.
         </div>
       </div>
 
-      {/* Search box */}
-      <div className="space-y-4">
+      {/* Search box + Quick topics */}
+      <div className="p-4 sm:p-5 rounded-xl bg-white border border-[#DCE4DD] shadow-2xs space-y-3.5">
         <form onSubmit={handleSubmit} className="flex gap-2">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6F9B86]" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g. AI interview coaching, mentorship platforms, career development..."
+              placeholder="Search academic literature (e.g. AI interview coaching, mentorship matching)..."
               maxLength={200}
-              className="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400"
+              className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm border border-[#CED9D0] rounded-lg bg-[#F8FAF7] text-[#161B19] placeholder-[#8C9B92] focus:outline-none focus:ring-2 focus:ring-[#123D32] focus:bg-white transition-all"
             />
           </div>
           <button
             type="submit"
             disabled={loading || !query.trim()}
-            className="px-5 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2 rounded-lg bg-[#123D32] text-white text-xs sm:text-sm font-semibold hover:bg-[#0B2822] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 cursor-pointer"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Search className="w-4 h-4" />
+              <Search className="w-4 h-4 text-[#A8CBB7]" />
             )}
-            Search
+            <span>Search</span>
           </button>
         </form>
 
-        {/* Quick topic searches */}
         <div>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-2">
-            Quick Search — Leeg Product Themes
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#53615A] block mb-1.5">
+            Quick Search by Leeg Product Theme:
           </span>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {QUICK_TOPICS.map((topic) => (
               <button
                 key={topic.label}
+                type="button"
                 onClick={() => handleQuickSearch(topic)}
                 disabled={loading}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-slate-200 bg-white text-xs text-slate-700 hover:border-purple-300 hover:text-purple-700 hover:bg-purple-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-[#CED9D0] bg-[#F8FAF7] text-xs text-[#161B19] hover:border-[#123D32] hover:text-[#123D32] hover:bg-[#EFF3EF] transition-colors disabled:opacity-50 cursor-pointer"
               >
-                <Tag className="w-3 h-3" />
+                <Tag className="w-3 h-3 text-[#6F9B86]" />
                 {topic.label}
               </button>
             ))}
@@ -234,183 +225,154 @@ export default function ResearchPage() {
               Try Again
             </button>
           </div>
-          <div className="ml-6 mt-2 p-3 rounded-lg bg-white border border-rose-200/70 text-xs text-slate-600">
-            <strong className="text-slate-700">Graceful recovery:</strong> The rest of the
-            Leeg application (Dashboard, Feedback Explorer, AI Insights) continues to work
-            normally. Only this external research feature is affected.
+          <div className="ml-6 mt-2 p-3 rounded-lg bg-white border border-rose-200/70 text-xs text-[#53615A]">
+            <strong className="text-[#161B19]">Graceful recovery:</strong> The rest of the Leeg application (Dashboard, Feedback Explorer, AI Insights) continues to work normally.
           </div>
         </div>
       )}
 
       {/* Loading skeleton */}
       {loading && (
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {[1, 2, 3].map((n) => (
             <div
               key={n}
-              className="p-5 rounded-xl bg-white border border-slate-200 animate-pulse space-y-3"
+              className="p-5 rounded-xl bg-white border border-[#DCE4DD] animate-pulse space-y-2.5"
             >
-              <div className="h-5 w-3/4 bg-slate-200 rounded" />
-              <div className="h-3 w-1/3 bg-slate-100 rounded" />
-              <div className="h-12 bg-slate-100 rounded" />
+              <div className="h-4 w-3/4 bg-[#EFF3EF] rounded" />
+              <div className="h-3 w-1/3 bg-[#F8FAF7] rounded" />
+              <div className="h-8 bg-[#F8FAF7] rounded" />
             </div>
           ))}
         </div>
       )}
 
-      {/* Results */}
+      {/* Results (Concise Publication Info + Expandable Abstract) */}
       {!loading && results.length > 0 && meta && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">
-                {results.length} Result{results.length !== 1 ? 's' : ''} from External Research
-              </h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Showing top {results.length} of ~{meta.totalResults.toLocaleString()} results
-                for &ldquo;{meta.query}&rdquo; · {meta.attribution}
-              </p>
-            </div>
+        <div className="space-y-3.5">
+          <div className="flex items-center justify-between gap-2 text-xs text-[#53615A]">
+            <span>
+              Showing <strong className="text-[#161B19]">{results.length}</strong> of ~
+              {meta.totalResults.toLocaleString()} OpenAlex works for &ldquo;{meta.query}&rdquo;
+            </span>
+            <span>{meta.attribution}</span>
           </div>
 
-          {results.map((work, idx) => (
-            <div
-              key={work.id}
-              className="p-5 rounded-xl bg-white border border-slate-200/90 shadow-xs hover:border-slate-300 transition-all"
-            >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-                    #{idx + 1}
-                  </span>
-                  {work.openAccess && (
-                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded">
-                      Open Access
+          {results.map((work, idx) => {
+            const isExpanded = expandedId === work.id;
+            return (
+              <div
+                key={work.id}
+                className="p-4 sm:p-5 rounded-xl bg-white border border-[#DCE4DD] shadow-2xs hover:border-[#6F9B86] transition-all space-y-2"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-[10px] font-bold text-[#161B19] bg-[#EFF3EF] px-1.5 py-0.5 rounded border border-[#CED9D0]">
+                      #{idx + 1}
                     </span>
-                  )}
-                  {work.year && (
-                    <span className="text-[10px] text-slate-500 bg-slate-50 border border-slate-200/70 px-1.5 py-0.5 rounded">
-                      {work.year}
-                    </span>
-                  )}
-                  {work.citedByCount !== null && work.citedByCount > 0 && (
-                    <span className="text-[10px] text-slate-400">
-                      {work.citedByCount.toLocaleString()} citations
-                    </span>
-                  )}
-                </div>
-                {work.url && (
-                  <a
-                    href={work.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 inline-flex items-center gap-1 text-xs text-purple-700 font-medium hover:text-purple-900 hover:underline"
-                  >
-                    View <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-              </div>
-
-              <h3 className="text-sm font-bold text-slate-900 leading-snug mb-1">
-                {work.title}
-              </h3>
-
-              {(work.authors.length > 0 || work.source) && (
-                <p className="text-[11px] text-slate-500 mb-2">
-                  {work.authors.length > 0 && (
-                    <span>{work.authors.join(', ')}</span>
-                  )}
-                  {work.authors.length > 0 && work.source && (
-                    <span className="text-slate-300 mx-1">·</span>
-                  )}
-                  {work.source && <span className="italic">{work.source}</span>}
-                </p>
-              )}
-
-              {work.abstract && (
-                <div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    {expandedId === work.id
-                      ? work.abstract
-                      : `${work.abstract.slice(0, 180)}${work.abstract.length > 180 ? '...' : ''}`}
-                  </p>
-                  {work.abstract.length > 180 && (
-                    <button
-                      onClick={() =>
-                        setExpandedId(expandedId === work.id ? null : work.id)
-                      }
-                      className="mt-1 text-[11px] text-purple-600 hover:text-purple-800 font-medium flex items-center gap-0.5 cursor-pointer"
+                    {work.year && (
+                      <span className="text-[10px] font-semibold text-[#123D32] bg-[#EFF3EF] border border-[#CED9D0] px-1.5 py-0.5 rounded">
+                        {work.year}
+                      </span>
+                    )}
+                    {work.openAccess && (
+                      <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                        Open Access
+                      </span>
+                    )}
+                    {work.citedByCount !== null && work.citedByCount > 0 && (
+                      <span className="text-[10px] text-[#53615A]">
+                        {work.citedByCount.toLocaleString()} citations
+                      </span>
+                    )}
+                  </div>
+                  {work.url && (
+                    <a
+                      href={work.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 inline-flex items-center gap-1 text-xs text-[#123D32] font-semibold hover:underline"
                     >
-                      {expandedId === work.id ? (
-                        <>
-                          Show less <ChevronUp className="w-3 h-3" />
-                        </>
-                      ) : (
-                        <>
-                          Read more <ChevronDown className="w-3 h-3" />
-                        </>
-                      )}
-                    </button>
+                      Open Source <ExternalLink className="w-3 h-3" />
+                    </a>
                   )}
                 </div>
-              )}
 
-              {!work.abstract && (
-                <p className="text-xs text-slate-400 italic">
-                  Abstract not available for this record.
-                </p>
-              )}
+                <h3 className="text-sm font-bold text-[#161B19] leading-snug">
+                  {work.title}
+                </h3>
 
-              <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                <span className="text-[10px] text-slate-400">
-                  Source: {meta.source}
-                </span>
-                {work.url && (
-                  <a
-                    href={work.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:text-blue-800 hover:underline"
-                  >
-                    <BookOpen className="w-3 h-3" />
-                    Read Paper
-                  </a>
+                {(work.authors.length > 0 || work.source) && (
+                  <p className="text-[11px] text-[#53615A]">
+                    {work.authors.length > 0 && <span>{work.authors.join(', ')}</span>}
+                    {work.authors.length > 0 && work.source && (
+                      <span className="text-[#9BA8A0] mx-1.5">•</span>
+                    )}
+                    {work.source && <span className="italic font-medium">{work.source}</span>}
+                  </p>
+                )}
+
+                {work.abstract ? (
+                  <div>
+                    <p className="text-xs text-[#53615A] leading-relaxed">
+                      {isExpanded
+                        ? work.abstract
+                        : `${work.abstract.slice(0, 140)}${
+                            work.abstract.length > 140 ? '...' : ''
+                          }`}
+                    </p>
+                    {work.abstract.length > 140 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedId(isExpanded ? null : work.id)
+                        }
+                        className="mt-1 text-[11px] text-[#123D32] hover:underline font-semibold inline-flex items-center gap-0.5 cursor-pointer"
+                      >
+                        {isExpanded ? (
+                          <>
+                            Collapse abstract <ChevronUp className="w-3 h-3" />
+                          </>
+                        ) : (
+                          <>
+                            Expand abstract <ChevronDown className="w-3 h-3" />
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-[#53615A] italic">
+                    Abstract preview not indexed for this publication.
+                  </p>
                 )}
               </div>
-            </div>
-          ))}
-
-          <p className="text-[11px] text-slate-400 text-center pt-2">
-            {meta.attribution} · This is external academic literature, not Leeg customer data.
-          </p>
+            );
+          })}
         </div>
       )}
 
       {/* Empty state after a search */}
       {!loading && !error && meta && results.length === 0 && (
-        <div className="p-10 rounded-xl bg-white border border-slate-200 text-center space-y-2">
-          <BookOpen className="w-8 h-8 text-slate-300 mx-auto" />
-          <p className="text-sm font-semibold text-slate-700">No results found</p>
-          <p className="text-xs text-slate-400">
-            Try a different search term or one of the quick topic buttons above.
+        <div className="p-8 rounded-xl bg-white border border-[#DCE4DD] text-center space-y-2">
+          <BookOpen className="w-7 h-7 text-[#6F9B86] mx-auto" />
+          <p className="text-sm font-semibold text-[#161B19]">No publications found</p>
+          <p className="text-xs text-[#53615A]">
+            Try another search term or click one of the quick-search theme tags above.
           </p>
         </div>
       )}
 
       {/* Initial empty state */}
       {!loading && !error && !meta && (
-        <div className="p-10 rounded-xl bg-white border border-slate-200 border-dashed text-center space-y-3">
-          <BookOpen className="w-10 h-10 text-slate-200 mx-auto" />
-          <div>
-            <p className="text-sm font-semibold text-slate-600">
-              Search External Academic Literature
-            </p>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-              Enter a topic above or click a quick-search tag to retrieve relevant published
-              research from OpenAlex. Results come from an external API — not from Leeg&apos;s
-              Supabase database.
-            </p>
-          </div>
+        <div className="p-8 rounded-xl bg-white border border-[#DCE4DD] text-center space-y-2">
+          <BookOpen className="w-8 h-8 text-[#6F9B86] mx-auto" />
+          <p className="text-sm font-bold text-[#161B19]">
+            Search External Academic Literature
+          </p>
+          <p className="text-xs text-[#53615A] max-w-md mx-auto">
+            Select a quick-search theme tag above or enter a topic to retrieve peer-reviewed research from OpenAlex.
+          </p>
         </div>
       )}
     </div>

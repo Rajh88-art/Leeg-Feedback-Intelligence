@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   Search,
-  Filter,
   Download,
   X,
   ChevronRight,
@@ -15,7 +14,9 @@ import {
   AlertTriangle,
   RefreshCw,
   Database,
-  ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  HelpCircle,
 } from 'lucide-react';
 import { fetchAllFeedbackData } from '@/services/feedbackDbService';
 import { EnrichedFeedback, EnrichedTheme, DbSource } from '@/types/database';
@@ -36,8 +37,13 @@ function FeedbackExplorerContent() {
     initialSource ? [initialSource] : []
   );
   const [selectedTheme, setSelectedTheme] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<'all' | '7d' | '30d' | '90d'>('all');
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
+
+  // Progressive disclosure: track which card quotes are expanded
+  const [expandedCardIds, setExpandedCardIds] = useState<number[]>([]);
+  const [showPriorityHelp, setShowPriorityHelp] = useState(false);
 
   const [drilldownTheme, setDrilldownTheme] = useState<EnrichedTheme | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,7 +68,6 @@ function FeedbackExplorerContent() {
     loadData();
   }, []);
 
-  // Update selected sources if initialSource query param changes
   useEffect(() => {
     if (initialSource && !selectedSources.includes(initialSource)) {
       setSelectedSources([initialSource]);
@@ -99,16 +104,22 @@ function FeedbackExplorerContent() {
     }
   };
 
+  const toggleCardQuote = (id: number) => {
+    setExpandedCardIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
   const clearAllFilters = () => {
     setSearchQuery('');
     setSelectedSources([]);
     setSelectedTheme('all');
+    setPriorityFilter('all');
     setDateFilter('all');
   };
 
   const filteredList = useMemo(() => {
     return feedback.filter((item) => {
-      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matches =
@@ -121,7 +132,6 @@ function FeedbackExplorerContent() {
         if (!matches) return false;
       }
 
-      // Source filter
       if (
         selectedSources.length > 0 &&
         !selectedSources.some(
@@ -131,7 +141,6 @@ function FeedbackExplorerContent() {
         return false;
       }
 
-      // Theme filter
       if (selectedTheme !== 'all') {
         const matchesPrimary =
           item.theme.toLowerCase() === selectedTheme.toLowerCase();
@@ -141,7 +150,14 @@ function FeedbackExplorerContent() {
         if (!matchesPrimary && !matchesAnyTheme) return false;
       }
 
-      // Date filter
+      if (priorityFilter !== 'all') {
+        if (priorityFilter === 'flagged') {
+          if (!item.isFlagged) return false;
+        } else if (item.priority !== priorityFilter) {
+          return false;
+        }
+      }
+
       if (dateFilter !== 'all') {
         const itemDate = new Date(item.date).getTime();
         const now = new Date().getTime();
@@ -154,7 +170,7 @@ function FeedbackExplorerContent() {
 
       return true;
     });
-  }, [feedback, searchQuery, selectedSources, selectedTheme, dateFilter]);
+  }, [feedback, searchQuery, selectedSources, selectedTheme, priorityFilter, dateFilter]);
 
   const exportFilteredCSV = () => {
     const headers = [
@@ -200,7 +216,6 @@ function FeedbackExplorerContent() {
       setDrilldownTheme(found);
       setIsModalOpen(true);
     } else {
-      // Fallback object if theme not directly matched by name
       setDrilldownTheme({
         id: 0,
         name: themeName,
@@ -215,108 +230,93 @@ function FeedbackExplorerContent() {
   };
 
   const hasActiveFilters =
-    searchQuery ||
+    Boolean(searchQuery) ||
     selectedSources.length > 0 ||
     selectedTheme !== 'all' ||
+    priorityFilter !== 'all' ||
     dateFilter !== 'all';
-
-  const getSourceBadge = (source: string) => {
-    switch (source) {
-      case 'Slack':
-        return 'bg-purple-50 text-purple-700 border-purple-200/80';
-      case 'Gmail':
-        return 'bg-rose-50 text-rose-700 border-rose-200/80';
-      case 'LinkedIn':
-        return 'bg-blue-50 text-blue-700 border-blue-200/80';
-      case 'Instagram':
-        return 'bg-pink-50 text-pink-700 border-pink-200/80';
-      case 'User Research':
-      case 'User research':
-        return 'bg-violet-50 text-violet-700 border-violet-200/80';
-      case 'Product Analytics':
-      case 'Product analytics':
-        return 'bg-cyan-50 text-cyan-700 border-cyan-200/80';
-      default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
-    }
-  };
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case 'critical':
-        return 'bg-red-100 text-red-800 border-red-300';
+        return 'bg-red-100 text-red-800 border-red-300 font-bold';
       case 'high':
-        return 'bg-rose-50 text-rose-700 border-rose-200/80';
+        return 'bg-orange-50 text-orange-800 border-orange-200 font-semibold';
       case 'medium':
-        return 'bg-amber-50 text-amber-700 border-amber-200/80';
+        return 'bg-amber-50 text-amber-800 border-amber-200 font-semibold';
       case 'low':
       default:
-        return 'bg-slate-100 text-slate-600 border-slate-200/80';
+        return 'bg-[#EFF3EF] text-[#123D32] border-[#CED9D0] font-medium';
     }
   };
 
   const getSentimentBadge = (sentiment: string) => {
     switch (sentiment) {
       case 'positive':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'needs_attention':
-        return 'bg-amber-50 text-amber-800 border-amber-200/80';
+        return 'bg-amber-50 text-amber-800 border-amber-200';
       case 'neutral':
       default:
-        return 'bg-slate-100 text-slate-600 border-slate-200/80';
+        return 'bg-[#F8FAF7] text-[#53615A] border-[#DCE4DD]';
     }
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[#DCE4DD]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200/60 flex items-center gap-1">
-              <Database className="w-3 h-3 text-purple-600" />
-              Supabase Intelligence Repository
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#123D32] bg-[#EFF3EF] px-2 py-0.5 rounded border border-[#CED9D0] flex items-center gap-1">
+              <Database className="w-3 h-3 text-[#123D32]" />
+              Supabase Repository
             </span>
-            <span className="text-slate-300 text-xs">•</span>
-            <span className="text-xs text-slate-500 font-medium">
-              {loading ? 'Connecting...' : `${feedback.length} Database Records`}
+            <span className="text-[#9BA8A0] text-xs">•</span>
+            <span className="text-xs text-[#53615A] font-medium">
+              {loading ? 'Connecting...' : `${feedback.length} Customer Records`}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#161B19] tracking-tight">
             Feedback Explorer
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-            Search, filter, and inspect verbatim member feedback and user research interviews stored in the live Supabase database.
-          </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setShowPriorityHelp(!showPriorityHelp)}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#EFF3EF] border border-[#CED9D0] text-[#123D32] text-xs font-semibold hover:bg-[#E2EBE4] transition-all cursor-pointer"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Priority vs. Flagged</span>
+          </button>
+
           <button
             onClick={loadData}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
-            title="Refresh database records"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#DCE4DD] text-[#161B19] text-xs font-medium hover:bg-[#F8FAF7] transition-all disabled:opacity-50 cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-[#6F9B86] ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
 
           <button
             onClick={exportFilteredCSV}
             disabled={filteredList.length === 0}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#DCE4DD] text-[#161B19] text-xs font-medium hover:bg-[#F8FAF7] transition-all disabled:opacity-50 cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5 text-slate-400" />
+            <Download className="w-3.5 h-3.5 text-[#6F9B86]" />
             <span>Export CSV</span>
           </button>
 
-          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80">
+          <div className="flex items-center bg-[#EFF3EF] p-0.5 rounded-lg border border-[#DCE4DD]">
             <button
               onClick={() => setViewMode('card')}
-              className={`p-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`p-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
                 viewMode === 'card'
-                  ? 'bg-white text-purple-700 shadow-2xs'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white text-[#123D32] shadow-2xs'
+                  : 'text-[#53615A] hover:text-[#161B19]'
               }`}
               title="Card View"
             >
@@ -324,10 +324,10 @@ function FeedbackExplorerContent() {
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`p-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
                 viewMode === 'table'
-                  ? 'bg-white text-purple-700 shadow-2xs'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white text-[#123D32] shadow-2xs'
+                  : 'text-[#53615A] hover:text-[#161B19]'
               }`}
               title="Table View"
             >
@@ -337,52 +337,73 @@ function FeedbackExplorerContent() {
         </div>
       </div>
 
+      {/* Priority vs. Flagged Explanation (Part 7) */}
+      {showPriorityHelp && (
+        <div className="p-4 rounded-xl bg-white border border-[#6F9B86] text-xs text-[#53615A] space-y-2 animate-in fade-in duration-150">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-[#123D32] uppercase tracking-wider text-[11px]">
+              Understanding Stored Priority vs. Flagged Status
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowPriorityHelp(false)}
+              className="text-[#53615A] hover:text-[#161B19] font-medium cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+          <p className="leading-relaxed">
+            <strong className="text-[#161B19]">Priority (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`):</strong> Reflects the stored severity of the customer issue in Supabase (e.g., `CRITICAL` for privacy/security risks like Record #10).{' '}
+            <strong className="text-amber-800">Flagged:</strong> A separate review marker (`is_flagged`) indicating any record that needs product team follow-up regardless of priority.
+          </p>
+        </div>
+      )}
+
       {/* Error Alert */}
       {error && (
         <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-            <span>Database query issue: {error}</span>
+            <span>{error}</span>
           </div>
           <button
             onClick={loadData}
-            className="px-3 py-1 rounded bg-rose-700 text-white font-medium text-xs hover:bg-rose-800 transition-colors"
+            className="px-3 py-1 rounded bg-rose-700 text-white font-semibold text-xs hover:bg-rose-800 transition-colors cursor-pointer"
           >
-            Retry Query
+            Retry
           </button>
         </div>
       )}
 
       {/* Unified Filter Panel */}
-      <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 shadow-xs space-y-4">
-        {/* Search Bar & Dropdowns Row */}
+      <div className="p-4 sm:p-5 rounded-xl bg-white border border-[#DCE4DD] shadow-2xs space-y-3.5">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
-          <div className="md:col-span-6 relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <div className="md:col-span-5 relative">
+            <Search className="w-3.5 h-3.5 text-[#6F9B86] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search feedback text, record #, summary, or theme..."
-              className="w-full pl-9 pr-7 py-2 text-xs bg-slate-50/80 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all placeholder:text-slate-400"
+              placeholder="Search record #, summary, quote, or theme..."
+              className="w-full pl-9 pr-7 py-2 text-xs bg-[#F8FAF7] border border-[#CED9D0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#123D32] focus:bg-white transition-all placeholder:text-[#8C9B92]"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#53615A] hover:text-[#161B19]"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          <div className="md:col-span-4">
+          <div className="md:col-span-3">
             <select
               value={selectedTheme}
               onChange={(e) => setSelectedTheme(e.target.value)}
-              className="w-full py-2 px-3 text-xs bg-slate-50/80 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-purple-500 text-slate-700 font-medium cursor-pointer"
+              className="w-full py-2 px-3 text-xs bg-[#F8FAF7] border border-[#CED9D0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#123D32] text-[#161B19] font-medium cursor-pointer"
             >
-              <option value="all">All Product Themes ({allThemeNames.length})</option>
+              <option value="all">All Themes ({allThemeNames.length})</option>
               {allThemeNames.map((t) => (
                 <option key={t} value={t}>
                   {t}
@@ -393,9 +414,24 @@ function FeedbackExplorerContent() {
 
           <div className="md:col-span-2">
             <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="w-full py-2 px-3 text-xs bg-[#F8FAF7] border border-[#CED9D0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#123D32] text-[#161B19] font-medium cursor-pointer"
+            >
+              <option value="all">All Priorities</option>
+              <option value="critical">Critical Only</option>
+              <option value="high">High Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="low">Low Priority</option>
+              <option value="flagged">Flagged Only</option>
+            </select>
+          </div>
+
+          <div className="md:col-span-2">
+            <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value as any)}
-              className="w-full py-2 px-3 text-xs bg-slate-50/80 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-purple-500 text-slate-700 font-medium cursor-pointer"
+              className="w-full py-2 px-3 text-xs bg-[#F8FAF7] border border-[#CED9D0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#123D32] text-[#161B19] font-medium cursor-pointer"
             >
               <option value="all">All Dates</option>
               <option value="7d">Past 7 Days</option>
@@ -406,21 +442,11 @@ function FeedbackExplorerContent() {
         </div>
 
         {/* Source Filter Chips */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              Filter by Intake Source ({allSourceNames.length})
-            </span>
-            {hasActiveFilters && (
-              <button
-                onClick={clearAllFilters}
-                className="text-[11px] font-medium text-purple-600 hover:text-purple-800 cursor-pointer"
-              >
-                Clear all filters
-              </button>
-            )}
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
           <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#53615A] mr-1">
+              Channel:
+            </span>
             {allSourceNames.map((src) => {
               const active = selectedSources.includes(src);
               return (
@@ -429,8 +455,8 @@ function FeedbackExplorerContent() {
                   onClick={() => toggleSource(src)}
                   className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-all flex items-center gap-1 cursor-pointer ${
                     active
-                      ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
-                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                      ? 'bg-[#123D32] text-white border-[#123D32] shadow-2xs'
+                      : 'bg-[#F8FAF7] text-[#161B19] border-[#CED9D0] hover:bg-[#EFF3EF]'
                   }`}
                 >
                   <span>{src}</span>
@@ -439,34 +465,40 @@ function FeedbackExplorerContent() {
               );
             })}
           </div>
+
+          {hasActiveFilters && (
+            <button
+              onClick={clearAllFilters}
+              className="text-[11px] font-semibold text-[#123D32] hover:underline shrink-0 self-start sm:self-auto cursor-pointer"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
       </div>
 
       {/* Result Count Status */}
-      <div className="flex items-center justify-between text-xs text-slate-500 px-0.5">
+      <div className="flex items-center justify-between text-xs text-[#53615A] px-0.5">
         <span>
-          Showing <strong className="text-slate-900 font-semibold">{filteredList.length}</strong> of{' '}
-          {feedback.length} records
+          Showing <strong className="text-[#161B19] font-semibold">{filteredList.length}</strong> of{' '}
+          {feedback.length} records &bull; Click any record to inspect full details
         </span>
         {hasActiveFilters && (
-          <span className="text-purple-700 font-medium text-[11px]">Active filters applied</span>
+          <span className="text-[#123D32] font-semibold text-[11px]">Filtered view</span>
         )}
       </div>
 
       {/* Loading Skeleton */}
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((n) => (
+          {[1, 2, 3, 4].map((n) => (
             <div
               key={n}
-              className="p-5 rounded-xl bg-white border border-slate-200/80 shadow-xs space-y-3 animate-pulse"
+              className="p-5 rounded-xl bg-white border border-[#DCE4DD] space-y-3 animate-pulse"
             >
-              <div className="flex items-center justify-between">
-                <div className="h-4 w-28 bg-slate-200 rounded" />
-                <div className="h-4 w-16 bg-slate-200 rounded" />
-              </div>
-              <div className="h-14 bg-slate-100 rounded-md" />
-              <div className="h-3 w-48 bg-slate-200 rounded" />
+              <div className="h-4 w-32 bg-[#EFF3EF] rounded" />
+              <div className="h-10 bg-[#F8FAF7] rounded-md" />
+              <div className="h-3 w-48 bg-[#EFF3EF] rounded" />
             </div>
           ))}
         </div>
@@ -474,150 +506,155 @@ function FeedbackExplorerContent() {
 
       {/* Empty State */}
       {!loading && filteredList.length === 0 && (
-        <div className="p-10 text-center bg-white rounded-xl border border-slate-200 space-y-2.5">
-          <h3 className="text-sm font-bold text-slate-900">No matching customer records found</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Try adjusting your search query, selecting "All Themes", or clearing the intake source filter.
+        <div className="p-10 text-center bg-white rounded-xl border border-[#DCE4DD] space-y-2.5">
+          <h3 className="text-sm font-bold text-[#161B19]">No matching customer records found</h3>
+          <p className="text-xs text-[#53615A] max-w-sm mx-auto">
+            Try clearing your search query or resetting the theme, priority, and channel filters.
           </p>
           <button
             onClick={clearAllFilters}
-            className="px-3.5 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg bg-[#123D32] text-white text-xs font-semibold hover:bg-[#0B2822] transition-colors cursor-pointer"
           >
-            Clear Filters
+            Reset Filters
           </button>
         </div>
       )}
 
-      {/* Card Grid View */}
+      {/* Card Grid View (Progressive Disclosure — Concise Summary First, Expandable Quote) */}
       {!loading && viewMode === 'card' && filteredList.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredList.map((item) => (
-            <div
-              key={item.id}
-              className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3 group"
-            >
-              <div>
-                {/* Header: Record ID, Source, Priority, Sentiment, Flagged */}
-                <div className="flex items-start justify-between gap-2 mb-2.5 flex-wrap">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                      Feedback #{item.id}
-                    </span>
-                    <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${getSourceBadge(
-                        item.source
-                      )}`}
-                    >
-                      {item.source}
-                    </span>
-                    {item.isFlagged && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                        <AlertTriangle className="w-3 h-3 text-amber-600" />
-                        Flagged
+          {filteredList.map((item) => {
+            const isExpanded = expandedCardIds.includes(item.id);
+            const cleanQuote = item.content.replace(/^"|"$/g, '');
+            const isLongQuote = cleanQuote.length > 130;
+
+            return (
+              <div
+                key={item.id}
+                className={`p-4 sm:p-5 rounded-xl bg-white border transition-all flex flex-col justify-between space-y-3 ${
+                  item.priority === 'critical'
+                    ? 'border-red-300 shadow-xs'
+                    : 'border-[#DCE4DD] hover:border-[#6F9B86]'
+                }`}
+              >
+                <div>
+                  {/* Header: Record ID, Source, Priority, Flagged */}
+                  <div className="flex items-start justify-between gap-2 mb-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Link
+                        href={`/feedback/${item.id}`}
+                        className="font-mono text-xs font-bold text-[#161B19] bg-[#EFF3EF] hover:bg-[#DCE4DD] px-2 py-0.5 rounded border border-[#CED9D0] transition-colors"
+                      >
+                        #{item.id}
+                      </Link>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#F8FAF7] text-[#161B19] border border-[#DCE4DD]">
+                        {item.source}
                       </span>
-                    )}
+                      {item.isFlagged && (
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                          <AlertTriangle className="w-3 h-3 text-amber-600" />
+                          Flagged
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded border uppercase tracking-wider ${getPriorityBadge(
+                          item.priority
+                        )}`}
+                      >
+                        {item.priority}
+                      </span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded border capitalize ${getSentimentBadge(
+                          item.sentiment
+                        )}`}
+                      >
+                        {item.sentiment === 'needs_attention' ? 'Attention' : item.sentiment}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <span
-                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wider ${getPriorityBadge(
-                        item.priority
-                      )}`}
-                    >
-                      {item.priority}
-                    </span>
-                    <span
-                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border capitalize ${getSentimentBadge(
-                        item.sentiment
-                      )}`}
-                    >
-                      {item.sentiment === 'needs_attention' ? 'Attention' : item.sentiment}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Verbatim Quote with clean left border */}
-                <div className="text-xs text-slate-800 italic leading-relaxed border-l-2 border-purple-500 bg-slate-50/70 p-3 rounded-r-lg mb-2.5 font-serif">
-                  "{item.content.replace(/^"|"$/g, '')}"
-                </div>
-
-                {/* Summary / Extracted Note */}
-                {item.summary && item.summary !== item.content && (
-                  <p className="text-[11px] text-slate-600 mb-2.5">
-                    <span className="font-semibold text-slate-900">Summary: </span>
-                    {item.summary}
-                  </p>
-                )}
-
-                {/* Primary Theme & Linked Themes */}
-                <div className="space-y-1">
+                  {/* Clickable Theme */}
                   <button
+                    type="button"
                     onClick={() => openDrilldown(item.theme)}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 hover:text-purple-900 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#123D32] hover:underline mb-1.5 cursor-pointer"
                   >
-                    <Layers className="w-3 h-3 text-purple-500" />
+                    <Layers className="w-3.5 h-3.5 text-[#6F9B86]" />
                     <span>{item.theme}</span>
                   </button>
 
-                  {item.themes && item.themes.length > 1 && (
-                    <div className="flex items-center gap-1 flex-wrap pt-0.5">
-                      <span className="text-[10px] text-slate-400">Also linked to:</span>
-                      {item.themes.slice(1).map((th) => (
-                        <button
-                          key={th.id}
-                          onClick={() => openDrilldown(th.name)}
-                          className="text-[10px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
-                        >
-                          {th.name}
-                        </button>
-                      ))}
-                    </div>
+                  {/* Concise Summary / Truncated Quote */}
+                  <p className="text-xs text-[#161B19] leading-relaxed">
+                    {isExpanded || !isLongQuote
+                      ? `“${cleanQuote}”`
+                      : `“${cleanQuote.slice(0, 130).trim()}...”`}
+                  </p>
+
+                  {isLongQuote && (
+                    <button
+                      type="button"
+                      onClick={() => toggleCardQuote(item.id)}
+                      className="mt-1.5 text-[11px] font-semibold text-[#123D32] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                    >
+                      {isExpanded ? (
+                        <>
+                          Show less <ChevronUp className="w-3 h-3" />
+                        </>
+                      ) : (
+                        <>
+                          Read full quote <ChevronDown className="w-3 h-3" />
+                        </>
+                      )}
+                    </button>
                   )}
                 </div>
-              </div>
 
-              {/* Footer */}
-              <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="text-slate-400">
-                  Recorded: {item.date}
-                </span>
+                {/* Footer */}
+                <div className="pt-2.5 border-t border-[#EFF3EF] flex items-center justify-between text-[11px]">
+                  <span className="text-[#53615A]">{item.date}</span>
 
-                <Link
-                  href={`/feedback/${item.id}`}
-                  className="font-semibold text-purple-600 hover:text-purple-800 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform"
-                >
-                  Inspect <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
+                  <Link
+                    href={`/feedback/${item.id}`}
+                    className="font-semibold text-[#123D32] hover:text-[#0B2822] flex items-center gap-0.5"
+                  >
+                    Inspect Record <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {/* Table View */}
       {!loading && viewMode === 'table' && filteredList.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-[#DCE4DD] shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+              <thead className="bg-[#EFF3EF] border-b border-[#DCE4DD] text-[#123D32] font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="py-2.5 px-4">Record</th>
                   <th className="py-2.5 px-4">Source</th>
-                  <th className="py-2.5 px-4">Verbatim Content</th>
+                  <th className="py-2.5 px-4">Summary / Quote</th>
                   <th className="py-2.5 px-4">Theme</th>
                   <th className="py-2.5 px-4">Priority</th>
-                  <th className="py-2.5 px-4">Sentiment</th>
                   <th className="py-2.5 px-4">Date</th>
                   <th className="py-2.5 px-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#EFF3EF]">
                 {filteredList.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                  <tr key={item.id} className="hover:bg-[#F8FAF7] transition-colors">
                     <td className="py-2.5 px-4 whitespace-nowrap">
-                      <span className="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-[11px]">
+                      <Link
+                        href={`/feedback/${item.id}`}
+                        className="font-mono font-bold text-[#161B19] bg-[#EFF3EF] px-1.5 py-0.5 rounded border border-[#CED9D0] text-[11px]"
+                      >
                         #{item.id}
-                      </span>
+                      </Link>
                       {item.isFlagged && (
                         <span className="ml-1.5 text-[9px] font-semibold text-amber-800 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
                           Flagged
@@ -625,52 +662,39 @@ function FeedbackExplorerContent() {
                       )}
                     </td>
                     <td className="py-2.5 px-4 whitespace-nowrap">
-                      <span
-                        className={`font-medium px-1.5 py-0.5 rounded text-[10px] border ${getSourceBadge(
-                          item.source
-                        )}`}
-                      >
+                      <span className="font-medium px-1.5 py-0.5 rounded text-[10px] border bg-[#F8FAF7] text-[#161B19] border-[#DCE4DD]">
                         {item.source}
                       </span>
                     </td>
-                    <td className="py-2.5 px-4 max-w-sm">
-                      <p className="text-slate-800 italic truncate font-serif">
-                        "{item.content.replace(/^"|"$/g, '')}"
+                    <td className="py-2.5 px-4 max-w-xs">
+                      <p className="text-[#161B19] truncate">
+                        {item.summary || item.content}
                       </p>
                     </td>
                     <td className="py-2.5 px-4 whitespace-nowrap">
                       <button
                         onClick={() => openDrilldown(item.theme)}
-                        className="text-purple-700 font-medium hover:underline text-[11px] cursor-pointer"
+                        className="text-[#123D32] font-semibold hover:underline text-[11px] cursor-pointer"
                       >
                         {item.theme}
                       </button>
                     </td>
                     <td className="py-2.5 px-4 whitespace-nowrap">
                       <span
-                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wider ${getPriorityBadge(
+                        className={`text-[10px] px-1.5 py-0.5 rounded border uppercase tracking-wider ${getPriorityBadge(
                           item.priority
                         )}`}
                       >
                         {item.priority}
                       </span>
                     </td>
-                    <td className="py-2.5 px-4 whitespace-nowrap">
-                      <span
-                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded border capitalize ${getSentimentBadge(
-                          item.sentiment
-                        )}`}
-                      >
-                        {item.sentiment === 'needs_attention' ? 'Attention' : item.sentiment}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-4 whitespace-nowrap text-slate-400 text-[11px]">
+                    <td className="py-2.5 px-4 whitespace-nowrap text-[#53615A] text-[11px]">
                       {item.date}
                     </td>
                     <td className="py-2.5 px-4 text-right whitespace-nowrap">
                       <Link
                         href={`/feedback/${item.id}`}
-                        className="font-medium text-purple-600 hover:text-purple-800"
+                        className="font-semibold text-[#123D32] hover:underline"
                       >
                         Inspect
                       </Link>
@@ -698,7 +722,7 @@ export default function FeedbackExplorerPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-10 text-center text-slate-500 text-xs">
+        <div className="p-10 text-center text-[#53615A] text-xs">
           Loading feedback explorer...
         </div>
       }

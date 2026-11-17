@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
 
 export interface AuthUser {
@@ -26,6 +26,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const DEMO_AUTH_COOKIE = 'leeg_auth_session';
+const PRODUCTION_RESET_URL = 'https://leeg-feedback-intelligence.vercel.app/reset-password';
 
 function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -59,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         if (isConfig) {
-          // Check live Supabase session
+          // Verify live Supabase session
           const { data, error } = await supabase.auth.getSession();
           if (!error && data?.session?.user) {
             setSession(data.session);
@@ -72,9 +73,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
             return;
           }
+          // When Supabase is configured and no active session exists, remove stale demo cookie
+          // so the UI never shows a false logged-in state with 0 RLS records.
+          removeCookie(DEMO_AUTH_COOKIE);
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
         }
 
-        // Check fallback session cookie
+        // Offline prototype fallback only when Supabase is not configured
         const savedSession = getCookie(DEMO_AUTH_COOKIE);
         if (savedSession) {
           try {
@@ -110,12 +118,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             created_at: currentSession.user.created_at,
           });
         } else {
-          // Check if fallback demo cookie is present
-          const savedSession = getCookie(DEMO_AUTH_COOKIE);
-          if (!savedSession) {
-            setSession(null);
-            setUser(null);
-          }
+          removeCookie(DEMO_AUTH_COOKIE);
+          setSession(null);
+          setUser(null);
         }
         setLoading(false);
       });
@@ -146,7 +151,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             created_at: data.user.created_at,
           });
           setSession(data.session);
-          // Set cookie for middleware redundancy
           setCookie(
             DEMO_AUTH_COOKIE,
             JSON.stringify({
@@ -215,7 +219,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
           return { error: null, message: 'Account created and signed in successfully!' };
         } else if (data?.user && !data.session) {
-          // Supabase email confirmation requirement
           return {
             error: null,
             message:
@@ -224,7 +227,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Demo/Prototype fallback
       if (!email || !password) {
         return { error: 'Please enter both email and password.' };
       }
@@ -281,30 +283,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string
   ): Promise<{ error: string | null; message?: string }> => {
     try {
-      if (!email.trim()) {
-        return { error: 'Please enter your work email address.' };
+      const trimmedEmail = email.trim();
+      if (!trimmedEmail || !trimmedEmail.includes('@')) {
+        return { error: 'Please enter a valid work email address.' };
       }
+
       if (configured) {
-        const redirectTo = `${window.location.origin}/login?mode=reset`;
-        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        const isLocalhost =
+          typeof window !== 'undefined' &&
+          (window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1');
+        const redirectTo = isLocalhost
+          ? `${window.location.origin}/reset-password`
+          : PRODUCTION_RESET_URL;
+
+        const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
           redirectTo,
         });
-        if (error) {
-          return { error: error.message };
+
+        // Do not reveal whether a specific email address is registered.
+        // Only surface rate-limit or network errors.
+        if (error && error.message?.toLowerCase().includes('rate limit')) {
+          return {
+            error:
+              'Too many password reset requests. Please wait a few minutes before trying again.',
+          };
         }
-        return {
-          error: null,
-          message:
-            'Password recovery email sent! Please check your inbox for the reset link.',
-        };
       }
+
       return {
         error: null,
         message:
-          'Password recovery link sent! (When Supabase is connected, a reset email will be delivered).',
+          'If an account is associated with that email address, a password reset link has been sent. Please check your inbox and spam folder.',
       };
-    } catch (err: any) {
-      return { error: err?.message || 'Failed to send password recovery email.' };
+    } catch {
+      return {
+        error: 'Unable to process password reset request right now. Please try again shortly.',
+      };
     }
   };
 

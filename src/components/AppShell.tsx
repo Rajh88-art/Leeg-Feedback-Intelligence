@@ -8,15 +8,18 @@ import Navbar from './Navbar';
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isPublicPage =
-    pathname === '/' || pathname === '/login' || pathname.startsWith('/auth');
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname === '/reset-password' ||
+    pathname.startsWith('/auth');
 
   if (isPublicPage) {
-    return <div className="min-h-screen bg-[#f8fafc] w-full">{children}</div>;
+    return <div className="min-h-screen bg-[#F8FAF7] w-full">{children}</div>;
   }
 
   return (
-    <div className="min-h-full flex flex-1">
-      {/* Dark Navy/Charcoal Sidebar */}
+    <div className="min-h-full flex flex-1 bg-[#F8FAF7]">
+      {/* Executive Forest-Green Sidebar */}
       <Sidebar />
 
       {/* Main Content Workspace */}

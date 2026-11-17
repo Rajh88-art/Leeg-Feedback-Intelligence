@@ -12,13 +12,13 @@ import {
 } from '@/types/database';
 
 const SOURCE_COLORS: Record<string, string> = {
-  Slack: '#611f69',
-  Gmail: '#ea4335',
-  LinkedIn: '#0a66c2',
-  Instagram: '#e1306c',
-  'User Research': '#7c3aed',
-  'Product Analytics': '#0284c7',
-  Direct: '#64748b',
+  Slack: '#123D32',
+  Gmail: '#B45309',
+  LinkedIn: '#0F5257',
+  Instagram: '#4A7C66',
+  'User Research': '#2D6A58',
+  'Product Analytics': '#6F9B86',
+  Direct: '#53615A',
 };
 
 export async function fetchAllFeedbackData(): Promise<{
@@ -28,12 +28,31 @@ export async function fetchAllFeedbackData(): Promise<{
 }> {
   const supabase = createBrowserClient();
 
-  const [sourcesRes, themesRes, feedbackRes, ftRes] = await Promise.all([
+  let [sourcesRes, themesRes, feedbackRes, ftRes] = await Promise.all([
     supabase.from('Sources').select('*').order('id', { ascending: true }),
     supabase.from('Themes').select('*').order('id', { ascending: true }),
     supabase.from('Feedback').select('*').order('id', { ascending: true }),
     supabase.from('Feedback_Themes').select('*').order('id', { ascending: true }),
   ]);
+
+  // If RLS returned 0 rows, check whether the user's Supabase session expired and refresh once
+  if (!feedbackRes.error && (!feedbackRes.data || feedbackRes.data.length === 0)) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      if (!refreshed?.session) {
+        throw new Error(
+          'Your Supabase session has expired or is inactive. Please sign in again to view feedback records.'
+        );
+      }
+      [sourcesRes, themesRes, feedbackRes, ftRes] = await Promise.all([
+        supabase.from('Sources').select('*').order('id', { ascending: true }),
+        supabase.from('Themes').select('*').order('id', { ascending: true }),
+        supabase.from('Feedback').select('*').order('id', { ascending: true }),
+        supabase.from('Feedback_Themes').select('*').order('id', { ascending: true }),
+      ]);
+    }
+  }
 
   if (feedbackRes.error) throw feedbackRes.error;
   if (sourcesRes.error) throw sourcesRes.error;

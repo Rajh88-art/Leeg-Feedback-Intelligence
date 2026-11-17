@@ -10,14 +10,11 @@ import {
   Layers,
   ArrowRight,
   AlertTriangle,
-  RefreshCw,
   Database,
 } from 'lucide-react';
 import { fetchFeedbackRecordById, fetchAllFeedbackData } from '@/services/feedbackDbService';
 import { EnrichedFeedback, EnrichedTheme } from '@/types/database';
 import ThemeDrilldownModal from '../../../components/ThemeDrilldownModal';
-
-// Also try legacy static data for old FB-NNN ids
 import { getFeedbackById } from '../../../data/feedbackData';
 
 interface FeedbackDetailClientProps {
@@ -40,7 +37,6 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
         setLoading(true);
         setNotFound(false);
 
-        // Determine numeric ID
         const numericId = parseInt(id.replace(/\D/g, ''), 10);
 
         const [record, allData] = await Promise.all([
@@ -49,12 +45,10 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
         ]);
 
         if (!record) {
-          // Try legacy static fallback for FB-NNN ids
           const legacyItem = getFeedbackById(id);
           if (!legacyItem) {
             setNotFound(true);
           } else {
-            // Adapt legacy item to EnrichedFeedback shape for rendering
             setItem({
               id: parseInt(legacyItem.id.replace(/\D/g, ''), 10) || 0,
               content: legacyItem.rawQuote || legacyItem.content,
@@ -66,7 +60,9 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
               sentiment: legacyItem.sentiment,
               priority: legacyItem.urgency,
               date: legacyItem.date.split('T')[0],
-              isFlagged: legacyItem.sentiment === 'needs_attention' && legacyItem.urgency === 'high',
+              isFlagged:
+                legacyItem.sentiment === 'needs_attention' &&
+                legacyItem.urgency === 'high',
               sourceId: undefined,
             });
           }
@@ -97,7 +93,6 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
     }
   };
 
-  // Prev/next navigation across all 20 Supabase records
   const currentIndex = item ? allFeedback.findIndex((f) => f.id === item.id) : -1;
   const prevItem = currentIndex > 0 ? allFeedback[currentIndex - 1] : null;
   const nextItem =
@@ -105,7 +100,6 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
       ? allFeedback[currentIndex + 1]
       : null;
 
-  // Related records — same theme, excluding self
   const relatedItems = item
     ? allFeedback
         .filter(
@@ -120,11 +114,11 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
   const getSentimentBadge = (sentiment: string) => {
     switch (sentiment) {
       case 'positive':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'needs_attention':
-        return 'bg-amber-50 text-amber-800 border-amber-200/80';
+        return 'bg-amber-50 text-amber-800 border-amber-200';
       default:
-        return 'bg-slate-100 text-slate-600 border-slate-200/80';
+        return 'bg-[#F8FAF7] text-[#53615A] border-[#DCE4DD]';
     }
   };
 
@@ -133,40 +127,22 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
       case 'critical':
         return 'bg-red-100 text-red-800 border-red-300 font-bold';
       case 'high':
-        return 'bg-rose-50 text-rose-700 border-rose-200/80';
+        return 'bg-orange-50 text-orange-800 border-orange-200 font-semibold';
       case 'medium':
-        return 'bg-amber-50 text-amber-700 border-amber-200/80';
+        return 'bg-amber-50 text-amber-800 border-amber-200 font-semibold';
       default:
-        return 'bg-slate-100 text-slate-600 border-slate-200/80';
-    }
-  };
-
-  const getSourceBadge = (source: string) => {
-    switch (source) {
-      case 'Slack': return 'bg-purple-50 text-purple-700 border-purple-200/80';
-      case 'Gmail': return 'bg-rose-50 text-rose-700 border-rose-200/80';
-      case 'LinkedIn': return 'bg-blue-50 text-blue-700 border-blue-200/80';
-      case 'Instagram': return 'bg-pink-50 text-pink-700 border-pink-200/80';
-      case 'User Research':
-      case 'User research': return 'bg-violet-50 text-violet-700 border-violet-200/80';
-      case 'Product Analytics':
-      case 'Product analytics': return 'bg-cyan-50 text-cyan-700 border-cyan-200/80';
-      default: return 'bg-slate-100 text-slate-700 border-slate-200';
+        return 'bg-[#EFF3EF] text-[#123D32] border-[#CED9D0] font-medium';
     }
   };
 
   if (loading) {
     return (
       <div className="space-y-5 max-w-4xl mx-auto animate-pulse">
-        <div className="h-8 w-48 bg-slate-200 rounded" />
-        <div className="bg-white rounded-xl border border-slate-200 p-7 space-y-5">
-          <div className="h-6 w-64 bg-slate-200 rounded" />
-          <div className="h-24 bg-slate-100 rounded-lg" />
-          <div className="h-32 bg-slate-100 rounded-lg" />
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-20 bg-slate-100 rounded-lg" />
-            <div className="h-20 bg-slate-100 rounded-lg" />
-          </div>
+        <div className="h-8 w-48 bg-[#EFF3EF] rounded" />
+        <div className="bg-white rounded-xl border border-[#DCE4DD] p-7 space-y-5">
+          <div className="h-6 w-64 bg-[#EFF3EF] rounded" />
+          <div className="h-24 bg-[#F8FAF7] rounded-lg" />
+          <div className="h-24 bg-[#F8FAF7] rounded-lg" />
         </div>
       </div>
     );
@@ -177,18 +153,22 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
       <div className="max-w-4xl mx-auto space-y-4">
         <Link
           href="/feedback"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-purple-700 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#123D32] hover:underline"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Feedback Explorer
         </Link>
-        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center space-y-3">
-          <h2 className="text-lg font-bold text-slate-900">Record Not Found</h2>
-          <p className="text-sm text-slate-500">
-            Feedback record <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">#{id}</code> does not exist in the database.
+        <div className="bg-white rounded-xl border border-[#DCE4DD] p-12 text-center space-y-3">
+          <h2 className="text-lg font-bold text-[#161B19]">Record Not Found</h2>
+          <p className="text-sm text-[#53615A]">
+            Feedback record{' '}
+            <code className="font-mono bg-[#EFF3EF] px-1.5 py-0.5 rounded">
+              #{id}
+            </code>{' '}
+            was not found or your session has expired.
           </p>
           <Link
             href="/feedback"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#123D32] text-white text-xs font-semibold hover:bg-[#0B2822] transition-colors"
           >
             Browse All Records
           </Link>
@@ -200,10 +180,10 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
   return (
     <div className="space-y-6 animate-in fade-in duration-200 max-w-4xl mx-auto">
       {/* Top Navigation & Controls */}
-      <div className="flex items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
+      <div className="flex items-center justify-between gap-4 pb-2 border-b border-[#DCE4DD]">
         <Link
           href="/feedback"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-purple-700 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#123D32] hover:text-[#0B2822] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Feedback Explorer
         </Link>
@@ -212,186 +192,135 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
           {prevItem && (
             <Link
               href={`/feedback/${prevItem.id}`}
-              className="px-2.5 py-1 rounded-md border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1 transition-colors"
+              className="px-2.5 py-1 rounded-md border border-[#DCE4DD] bg-white text-xs font-medium text-[#161B19] hover:bg-[#EFF3EF] flex items-center gap-1 transition-colors"
             >
-              <ChevronLeft className="w-3.5 h-3.5" /> Previous (#{prevItem.id})
+              <ChevronLeft className="w-3.5 h-3.5" /> #{prevItem.id}
             </Link>
           )}
           {nextItem && (
             <Link
               href={`/feedback/${nextItem.id}`}
-              className="px-2.5 py-1 rounded-md border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1 transition-colors"
+              className="px-2.5 py-1 rounded-md border border-[#DCE4DD] bg-white text-xs font-medium text-[#161B19] hover:bg-[#EFF3EF] flex items-center gap-1 transition-colors"
             >
-              Next (#{nextItem.id}) <ChevronRight className="w-3.5 h-3.5" />
+              #{nextItem.id} <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           )}
         </div>
       </div>
 
       {/* Main Feedback Record Card */}
-      <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden space-y-5 p-5 sm:p-7">
+      <div className="bg-white rounded-xl border border-[#DCE4DD] shadow-2xs overflow-hidden space-y-5 p-5 sm:p-7">
         {/* Header Ribbon */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-100 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-[#EFF3EF] pb-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-[11px] font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200/70">
+              <span className="font-mono text-xs font-bold text-[#161B19] bg-[#EFF3EF] px-2 py-0.5 rounded border border-[#CED9D0]">
                 Feedback #{item.id}
               </span>
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded border uppercase tracking-wider ${getPriorityBadge(
+                  item.priority
+                )}`}
+              >
+                {item.priority} Priority (Stored)
+              </span>
               {item.isFlagged && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                   <AlertTriangle className="w-3 h-3 text-amber-600" />
-                  Flagged Friction
+                  Flagged for Review
                 </span>
               )}
-              <span className="text-slate-300 text-xs">•</span>
-              <span className="text-xs text-slate-500">{item.date}</span>
+              <span className="text-[#9BA8A0] text-xs">•</span>
+              <span className="text-xs text-[#53615A]">{item.date}</span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#161B19] tracking-tight">
               {item.theme}
             </h1>
           </div>
 
-          <span
-            className={`text-[11px] font-semibold px-2.5 py-1 rounded border self-start ${getSourceBadge(
-              item.source
-            )}`}
-          >
+          <span className="text-xs font-semibold px-2.5 py-1 rounded bg-[#EFF3EF] text-[#123D32] border border-[#CED9D0] self-start">
             {item.source}
           </span>
         </div>
 
-        {/* Source & Metadata Row */}
-        <div className="flex items-center gap-2.5 bg-slate-50/70 p-3.5 rounded-lg border border-slate-200/80 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-slate-400 shrink-0" />
-            <span className="text-xs font-semibold text-slate-800">Source:</span>
-            <span className="text-xs text-slate-600">{item.source}</span>
-            {item.channelType && (
-              <span className="text-[11px] text-slate-400">({item.channelType})</span>
-            )}
-          </div>
-          <span className="text-slate-200">|</span>
-          <div className="flex items-center gap-1.5">
-            <span
-              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wider ${getPriorityBadge(
-                item.priority
-              )}`}
-            >
-              {item.priority} priority
-            </span>
-            <span
-              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border capitalize ${getSentimentBadge(
-                item.sentiment
-              )}`}
-            >
-              {item.sentiment === 'needs_attention' ? 'Needs Attention' : item.sentiment}
-            </span>
-          </div>
-        </div>
-
         {/* Original Verbatim Content */}
         <div>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
-            Verbatim Customer Feedback
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#53615A] block mb-1.5">
+            Verbatim Customer Quote
           </span>
-          <div className="text-sm text-slate-800 italic leading-relaxed border-l-2 border-purple-500 bg-slate-50/60 p-4 rounded-r-lg border-y border-r border-slate-200/60 font-serif">
-            {item.content}
+          <div className="text-sm text-[#161B19] italic leading-relaxed border-l-3 border-[#123D32] bg-[#F8FAF7] p-4 rounded-r-lg border-y border-r border-[#DCE4DD]">
+            &ldquo;{item.content.replace(/^"|"$/g, '')}&rdquo;
           </div>
         </div>
 
-        {/* AI Summary / Observation */}
+        {/* Summary */}
         {item.summary && item.summary !== item.content && (
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
-              Observation Summary
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#53615A] block mb-1.5">
+              Concise Summary
             </span>
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed bg-white p-3.5 rounded-lg border border-slate-200/80">
+            <p className="text-xs sm:text-sm text-[#161B19] leading-relaxed bg-[#F8FAF7] p-3.5 rounded-lg border border-[#DCE4DD]">
               {item.summary}
             </p>
           </div>
         )}
 
-        {/* AI Intelligence Extraction */}
-        <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3">
-          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-800">
-            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-            <span>Product Intelligence Metadata</span>
+        {/* Metadata Grid */}
+        <div className="p-4 rounded-xl bg-[#F8FAF7] border border-[#DCE4DD] grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div>
+            <span className="font-semibold text-[#161B19] block mb-1">
+              Classified Theme (Click to view cluster)
+            </span>
+            <button
+              onClick={() => openDrilldown(item.theme)}
+              className="font-semibold text-[#123D32] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <Layers className="w-3.5 h-3.5 text-[#6F9B86] shrink-0" />
+              {item.theme}
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div>
-              <span className="font-semibold text-slate-900 block mb-1">Classified Theme</span>
-              <div className="bg-white p-2.5 rounded-lg border border-slate-200">
-                <button
-                  onClick={() => openDrilldown(item.theme)}
-                  className="font-medium text-purple-700 hover:text-purple-900 flex items-center gap-1 cursor-pointer"
-                >
-                  <Layers className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                  {item.theme}
-                </button>
-                {item.themes && item.themes.length > 1 && (
-                  <div className="mt-1.5 flex flex-wrap gap-1">
-                    {item.themes.slice(1).map((t) => (
-                      <button
-                        key={t.id}
-                        onClick={() => openDrilldown(t.name)}
-                        className="text-[10px] bg-slate-100 text-slate-600 hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer"
-                      >
-                        {t.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+          <div className="space-y-1 text-[11px] text-[#53615A]">
+            <div className="flex justify-between">
+              <span className="font-medium text-[#161B19]">Channel:</span>
+              <span>{item.source} (Seeded Example)</span>
             </div>
-
-            <div>
-              <span className="font-semibold text-slate-900 block mb-1">Record Details</span>
-              <div className="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1 text-[11px] text-slate-600">
-                <div className="flex justify-between">
-                  <span className="font-medium text-slate-700">Record ID:</span>
-                  <span className="font-mono">#{item.id}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-slate-700">Date:</span>
-                  <span>{item.date}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-slate-700">Source:</span>
-                  <span>{item.source}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-slate-700">Flagged:</span>
-                  <span>{item.isFlagged ? 'Yes – requires triage' : 'No'}</span>
-                </div>
-              </div>
+            <div className="flex justify-between">
+              <span className="font-medium text-[#161B19]">Sentiment:</span>
+              <span className={`px-1.5 py-0.2 rounded border capitalize ${getSentimentBadge(item.sentiment)}`}>
+                {item.sentiment === 'needs_attention' ? 'Needs Attention' : item.sentiment}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium text-[#161B19]">Flagged Marker:</span>
+              <span>{item.isFlagged ? 'Yes — Marked for human review' : 'No'}</span>
             </div>
           </div>
         </div>
 
         {/* Related Records — same theme */}
         {relatedItems.length > 0 && (
-          <div className="pt-3 border-t border-slate-100">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-2.5">
-              Related Feedback Records ({relatedItems.length})
+          <div className="pt-3 border-t border-[#EFF3EF]">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#53615A] block mb-2.5">
+              Other Records in This Theme ({relatedItems.length})
             </span>
             <div className="space-y-2">
               {relatedItems.map((sim) => (
                 <Link
                   key={sim.id}
                   href={`/feedback/${sim.id}`}
-                  className="p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50/70 transition-all flex items-center justify-between text-xs group"
+                  className="p-3 rounded-lg border border-[#DCE4DD] hover:border-[#123D32] hover:bg-[#F8FAF7] transition-all flex items-center justify-between text-xs group"
                 >
-                  <div>
-                    <span className="font-mono font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
-                      Feedback #{sim.id}
+                  <div className="min-w-0 pr-3">
+                    <span className="font-mono font-bold text-[#161B19] group-hover:text-[#123D32] transition-colors">
+                      Feedback #{sim.id} ({sim.source})
                     </span>
-                    <span className="text-slate-500 block text-[11px] mt-0.5 italic line-clamp-1">
-                      {sim.content.slice(0, 80)}...
+                    <span className="text-[#53615A] block text-[11px] mt-0.5 truncate">
+                      {sim.summary || sim.content}
                     </span>
                   </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-700 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#6F9B86] group-hover:text-[#123D32] shrink-0" />
                 </Link>
               ))}
             </div>
