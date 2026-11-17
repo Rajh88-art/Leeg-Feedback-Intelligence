@@ -8,65 +8,57 @@ import {
   LayoutDashboard,
   MessageSquare,
   Sparkles,
-  Sliders,
+  Info,
   Menu,
   X,
   LogOut,
   BookOpen,
   BrainCircuit,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import LeegLogo from './LeegLogo';
 
-// Simplified navigation (Emma's feedback Part 5):
-// Removed redundant standalone "Feedback Detail" tab.
-// Feedback Explorer (/feedback) acts as the primary entry point and stays highlighted
-// when inspecting any individual /feedback/[id] record.
 const navigationItems = [
   {
     name: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
-    badge: null,
   },
   {
-    name: 'Feedback Explorer',
+    name: 'All Feedback',
     href: '/feedback',
     icon: MessageSquare,
-    badge: '20 Records',
   },
   {
     name: 'AI Insights',
     href: '/ai-insights',
     icon: Sparkles,
-    badge: '7 Themes',
   },
   {
-    name: 'Live AI Analysis',
+    name: 'AI Analysis',
     href: '/ai-analysis',
     icon: BrainCircuit,
-    badge: 'Live AI',
   },
   {
-    name: 'Research Context',
+    name: 'Research',
     href: '/research',
     icon: BookOpen,
-    badge: 'OpenAlex',
   },
   {
-    name: 'Platform Scope',
+    name: 'About',
     href: '/profile',
-    icon: Sliders,
-    badge: null,
+    icon: Info,
   },
 ];
 
-const exampleChannels = [
-  { name: 'Slack', tag: 'Seeded' },
-  { name: 'Gmail', tag: 'Seeded' },
-  { name: 'LinkedIn', tag: 'Seeded' },
-  { name: 'Instagram', tag: 'Seeded' },
-  { name: 'User Research', tag: 'Seeded' },
-  { name: 'Product Analytics', tag: 'Seeded' },
+const sampleChannels = [
+  'Slack',
+  'Gmail',
+  'LinkedIn',
+  'Instagram',
+  'User Research',
+  'Product Analytics',
 ];
 
 export default function Sidebar() {
@@ -74,6 +66,7 @@ export default function Sidebar() {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -100,17 +93,16 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-[#0B2822] border-b border-[#1D463B] sticky top-0 z-40">
-        <div className="flex items-center gap-2.5">
-          <LeegLogo size={28} />
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-[#F8FAF7] text-sm tracking-tight">Leeg</span>
-            <span className="text-[11px] text-[#9BBAA9] font-normal">Feedback Intelligence</span>
-          </div>
-        </div>
+      <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-[#0B2822] border-b border-[#1A4237] sticky top-0 z-40">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <LeegLogo size={26} />
+          <span className="font-semibold text-[#F8FAF7] text-sm tracking-tight">
+            Leeg
+          </span>
+        </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-1.5 rounded-lg text-[#9BBAA9] hover:text-white hover:bg-[#123D32] transition-colors"
+          className="p-1.5 rounded-lg text-[#B8D1C4] hover:text-white hover:bg-[#123D32] transition-colors"
           aria-label="Toggle Navigation"
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -120,46 +112,34 @@ export default function Sidebar() {
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-[#161B19]/60 backdrop-blur-xs z-40 lg:hidden"
+          className="fixed inset-0 bg-[#161B19]/50 backdrop-blur-xs z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Main Executive Forest-Green Sidebar */}
+      {/* Sidebar */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-[#0B2822] border-r border-[#1A4237] flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-60 bg-[#0B2822] border-r border-[#1A4237] flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         }`}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b border-[#1A4237]">
-          <Link href="/dashboard" className="flex items-center gap-3 group">
-            <LeegLogo size={32} />
+        <div className="px-5 py-4 border-b border-[#1A4237]">
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <LeegLogo size={30} />
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-[#F8FAF7] text-sm tracking-tight">Leeg</span>
-                <span className="text-[10px] font-medium tracking-wide uppercase px-1.5 py-0.5 rounded bg-[#123D32] text-[#A8CBB7] border border-[#265C4D]">
-                  Intel
-                </span>
-              </div>
-              <p className="text-[11px] text-[#8EB09F] truncate mt-0.5">Career OS Product Suite</p>
+              <span className="font-semibold text-[#F8FAF7] text-sm tracking-tight block">
+                Leeg
+              </span>
+              <span className="text-[11px] text-[#B89B72] block truncate">
+                Feedback Intelligence
+              </span>
             </div>
           </Link>
-
-          {/* Role badge */}
-          <div className="mt-3.5 px-2.5 py-1.5 rounded-md bg-[#123D32]/80 border border-[#1F4E41] text-[11px] text-[#D7E8DF] flex items-center justify-between">
-            <div className="flex items-center gap-1.5 truncate">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#6F9B86]" />
-              <span className="font-medium truncate">VP of Product Workspace</span>
-            </div>
-          </div>
         </div>
 
         {/* Navigation Items */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1">
-          <div className="px-2.5 pt-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#7A9E8D]">
-            Intelligence Views
-          </div>
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
           {navigationItems.map((item) => {
             const active = isActive(item.href);
             const Icon = item.icon;
@@ -168,87 +148,80 @@ export default function Sidebar() {
                 key={item.name}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all group ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all relative ${
                   active
-                    ? 'bg-[#123D32] text-[#F8FAF7] font-semibold shadow-2xs relative border border-[#245A4B]'
-                    : 'text-[#A5C2B3] hover:text-[#F8FAF7] hover:bg-[#123D32]/50'
+                    ? 'bg-[#123D32] text-[#F8FAF7] font-semibold'
+                    : 'text-[#B8D1C4] hover:text-[#F8FAF7] hover:bg-[#123D32]/50'
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Icon
-                    className={`w-4 h-4 shrink-0 ${
-                      active ? 'text-[#8EB8A3]' : 'text-[#6F9B86] group-hover:text-[#A8CBB7]'
-                    }`}
-                  />
-                  <span className="truncate">{item.name}</span>
-                </div>
-                {item.badge && (
-                  <span
-                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                      active
-                        ? 'bg-[#0B2822] text-[#A8CBB7] border border-[#296353]'
-                        : 'bg-[#123D32]/60 text-[#8EB09F] group-hover:text-[#D7E8DF]'
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
-                )}
+                <Icon
+                  className={`w-4 h-4 shrink-0 ${
+                    active ? 'text-[#B89B72]' : 'text-[#6F9B86]'
+                  }`}
+                />
+                <span className="truncate">{item.name}</span>
                 {active && (
-                  <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#6F9B86] rounded-r" />
+                  <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#B89B72] rounded-r" />
                 )}
               </Link>
             );
           })}
 
-          {/* Example Channels List (Part 10 clarity) */}
-          <div className="pt-5 px-2.5">
-            <div className="pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#7A9E8D] flex items-center justify-between">
-              <span>Example Channels</span>
-              <span className="text-[9px] text-[#7A9E8D] font-mono">Seeded DB</span>
-            </div>
-            <div className="grid grid-cols-2 gap-1 mt-1">
-              {exampleChannels.map((src) => (
-                <Link
-                  key={src.name}
-                  href={`/feedback?source=${encodeURIComponent(src.name)}`}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-between py-1 px-2 rounded bg-[#123D32]/40 hover:bg-[#123D32]/80 border border-[#1A4237] text-[10px] text-[#B8D1C4] transition-colors truncate"
-                  title={`Filter Feedback Explorer by ${src.name} (seeded example source)`}
-                >
-                  <span className="truncate">{src.name}</span>
-                </Link>
-              ))}
-            </div>
-            <p className="text-[10px] text-[#7A9E8D] mt-1.5 leading-snug">
-              Channel tags represent seeded example sources in Supabase, not live webhook imports.
-            </p>
-          </div>
-        </div>
+          {/* Collapsed Data Sources Subsection */}
+          <div className="pt-4 mt-4 border-t border-[#1A4237]">
+            <button
+              type="button"
+              onClick={() => setSourcesOpen(!sourcesOpen)}
+              className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-[#8EB09F] hover:text-[#F8FAF7] transition-colors cursor-pointer"
+            >
+              <span>Data Sources (Sample)</span>
+              {sourcesOpen ? (
+                <ChevronDown className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronRight className="w-3.5 h-3.5" />
+              )}
+            </button>
 
-        {/* Authenticated User Area */}
+            {sourcesOpen && (
+              <div className="mt-1 px-2 space-y-1">
+                <div className="grid grid-cols-2 gap-1">
+                  {sampleChannels.map((name) => (
+                    <Link
+                      key={name}
+                      href={`/feedback?source=${encodeURIComponent(name)}`}
+                      onClick={() => setMobileOpen(false)}
+                      className="py-1 px-2 rounded bg-[#123D32]/40 hover:bg-[#123D32] text-[10px] text-[#D7E8DF] truncate transition-colors"
+                    >
+                      {name}
+                    </Link>
+                  ))}
+                </div>
+                <p className="text-[10px] text-[#7A9E8D] px-1 pt-1 leading-snug">
+                  Sample channels stored in database, not live integrations.
+                </p>
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* Signed-in User Area */}
         <div className="p-3 border-t border-[#1A4237] bg-[#081F1A]">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-[#123D32] border border-[#2A6353] flex items-center justify-center text-[#D7E8DF] font-semibold text-xs shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-full bg-[#123D32] border border-[#B89B72]/50 flex items-center justify-center text-[#E8E0D3] font-semibold text-xs shrink-0">
                 {user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
               </div>
-              <div className="min-w-0">
-                <p
-                  className="text-xs font-medium text-[#F8FAF7] truncate"
-                  title={user?.email || 'Authenticated User'}
-                >
-                  {user?.email || 'Authenticated User'}
-                </p>
-                <div className="flex items-center gap-1.5 text-[10px] text-[#8EB09F]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#6F9B86] shrink-0" />
-                  <span className="truncate">Verified Session</span>
-                </div>
-              </div>
+              <p
+                className="text-xs font-medium text-[#F8FAF7] truncate"
+                title={user?.email || 'Signed in'}
+              >
+                {user?.email || 'Signed in'}
+              </p>
             </div>
             <button
               onClick={handleSignOut}
               disabled={isSigningOut}
-              className="p-1.5 rounded-lg text-[#8EB09F] hover:text-rose-300 hover:bg-[#123D32] transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+              className="p-1.5 rounded-lg text-[#8EB09F] hover:text-white hover:bg-[#123D32] transition-colors shrink-0 cursor-pointer disabled:opacity-50"
               title="Sign Out"
               aria-label="Sign Out"
             >

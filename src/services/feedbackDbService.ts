@@ -13,11 +13,11 @@ import {
 
 const SOURCE_COLORS: Record<string, string> = {
   Slack: '#123D32',
-  Gmail: '#B45309',
-  LinkedIn: '#0F5257',
-  Instagram: '#4A7C66',
-  'User Research': '#2D6A58',
-  'Product Analytics': '#6F9B86',
+  Gmail: '#B89B72',
+  LinkedIn: '#2D5A4C',
+  Instagram: '#6F9B86',
+  'User Research': '#8C7350',
+  'Product Analytics': '#4A7866',
   Direct: '#53615A',
 };
 

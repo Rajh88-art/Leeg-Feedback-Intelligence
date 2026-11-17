@@ -6,11 +6,8 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
-  Layers,
   ArrowRight,
   AlertTriangle,
-  Database,
 } from 'lucide-react';
 import { fetchFeedbackRecordById, fetchAllFeedbackData } from '@/services/feedbackDbService';
 import { EnrichedFeedback, EnrichedTheme } from '@/types/database';
@@ -111,25 +108,14 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
         .slice(0, 3)
     : [];
 
-  const getSentimentBadge = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'needs_attention':
-        return 'bg-amber-50 text-amber-800 border-amber-200';
-      default:
-        return 'bg-[#F8FAF7] text-[#53615A] border-[#DCE4DD]';
-    }
-  };
-
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case 'critical':
         return 'bg-red-100 text-red-800 border-red-300 font-bold';
       case 'high':
-        return 'bg-orange-50 text-orange-800 border-orange-200 font-semibold';
+        return 'bg-amber-50 text-amber-900 border-amber-300 font-semibold';
       case 'medium':
-        return 'bg-amber-50 text-amber-800 border-amber-200 font-semibold';
+        return 'bg-[#E8E0D3]/80 text-[#5C4930] border-[#D5C9B8] font-medium';
       default:
         return 'bg-[#EFF3EF] text-[#123D32] border-[#CED9D0] font-medium';
     }
@@ -137,11 +123,10 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
 
   if (loading) {
     return (
-      <div className="space-y-5 max-w-4xl mx-auto animate-pulse">
-        <div className="h-8 w-48 bg-[#EFF3EF] rounded" />
-        <div className="bg-white rounded-xl border border-[#DCE4DD] p-7 space-y-5">
-          <div className="h-6 w-64 bg-[#EFF3EF] rounded" />
-          <div className="h-24 bg-[#F8FAF7] rounded-lg" />
+      <div className="space-y-4 max-w-3xl mx-auto animate-pulse">
+        <div className="h-6 w-36 bg-[#EFF3EF] rounded" />
+        <div className="bg-white rounded-xl border border-[#DCE4DD] p-6 space-y-4">
+          <div className="h-6 w-56 bg-[#EFF3EF] rounded" />
           <div className="h-24 bg-[#F8FAF7] rounded-lg" />
         </div>
       </div>
@@ -150,27 +135,20 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
 
   if (notFound || !item) {
     return (
-      <div className="max-w-4xl mx-auto space-y-4">
+      <div className="max-w-3xl mx-auto space-y-4">
         <Link
           href="/feedback"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#123D32] hover:underline"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Feedback Explorer
+          <ArrowLeft className="w-3.5 h-3.5" /> All Feedback
         </Link>
-        <div className="bg-white rounded-xl border border-[#DCE4DD] p-12 text-center space-y-3">
-          <h2 className="text-lg font-bold text-[#161B19]">Record Not Found</h2>
-          <p className="text-sm text-[#53615A]">
-            Feedback record{' '}
-            <code className="font-mono bg-[#EFF3EF] px-1.5 py-0.5 rounded">
-              #{id}
-            </code>{' '}
-            was not found or your session has expired.
-          </p>
+        <div className="bg-white rounded-xl border border-[#DCE4DD] p-10 text-center space-y-3">
+          <h2 className="text-base font-bold text-[#161B19]">Feedback Not Found</h2>
           <Link
             href="/feedback"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#123D32] text-white text-xs font-semibold hover:bg-[#0B2822] transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#123D32] text-white text-xs font-semibold"
           >
-            Browse All Records
+            Back to All Feedback
           </Link>
         </div>
       </div>
@@ -178,21 +156,21 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200 max-w-4xl mx-auto">
-      {/* Top Navigation & Controls */}
-      <div className="flex items-center justify-between gap-4 pb-2 border-b border-[#DCE4DD]">
+    <div className="space-y-5 animate-in fade-in duration-200 max-w-3xl mx-auto">
+      {/* Top Navigation */}
+      <div className="flex items-center justify-between gap-4">
         <Link
           href="/feedback"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#123D32] hover:text-[#0B2822] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#123D32] hover:text-[#0B2822]"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Feedback Explorer
+          <ArrowLeft className="w-3.5 h-3.5" /> All Feedback
         </Link>
 
         <div className="flex items-center gap-1.5">
           {prevItem && (
             <Link
               href={`/feedback/${prevItem.id}`}
-              className="px-2.5 py-1 rounded-md border border-[#DCE4DD] bg-white text-xs font-medium text-[#161B19] hover:bg-[#EFF3EF] flex items-center gap-1 transition-colors"
+              className="px-2.5 py-1 rounded-md border border-[#DCE4DD] bg-white text-xs font-medium text-[#161B19] hover:bg-[#F8FAF7] flex items-center gap-1"
             >
               <ChevronLeft className="w-3.5 h-3.5" /> #{prevItem.id}
             </Link>
@@ -200,7 +178,7 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
           {nextItem && (
             <Link
               href={`/feedback/${nextItem.id}`}
-              className="px-2.5 py-1 rounded-md border border-[#DCE4DD] bg-white text-xs font-medium text-[#161B19] hover:bg-[#EFF3EF] flex items-center gap-1 transition-colors"
+              className="px-2.5 py-1 rounded-md border border-[#DCE4DD] bg-white text-xs font-medium text-[#161B19] hover:bg-[#F8FAF7] flex items-center gap-1"
             >
               #{nextItem.id} <ChevronRight className="w-3.5 h-3.5" />
             </Link>
@@ -208,115 +186,73 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
         </div>
       </div>
 
-      {/* Main Feedback Record Card */}
-      <div className="bg-white rounded-xl border border-[#DCE4DD] shadow-2xs overflow-hidden space-y-5 p-5 sm:p-7">
-        {/* Header Ribbon */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-[#EFF3EF] pb-4">
-          <div className="space-y-1.5">
+      {/* Main Card */}
+      <div className="bg-white rounded-xl border border-[#DCE4DD] p-5 sm:p-6 space-y-4">
+        <div className="flex items-start justify-between gap-3 flex-wrap border-b border-[#EFF3EF] pb-3.5">
+          <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono text-xs font-bold text-[#161B19] bg-[#EFF3EF] px-2 py-0.5 rounded border border-[#CED9D0]">
-                Feedback #{item.id}
+                #{item.id}
               </span>
               <span
-                className={`text-[10px] px-2 py-0.5 rounded border uppercase tracking-wider ${getPriorityBadge(
+                className={`text-[10px] px-2 py-0.5 rounded border uppercase ${getPriorityBadge(
                   item.priority
                 )}`}
               >
-                {item.priority} Priority (Stored)
+                {item.priority}
               </span>
               {item.isFlagged && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                  <AlertTriangle className="w-3 h-3 text-amber-600" />
-                  Flagged for Review
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#5C4930] bg-[#E8E0D3] px-2 py-0.5 rounded border border-[#D5C9B8]">
+                  <AlertTriangle className="w-3 h-3" />
+                  Flagged
                 </span>
               )}
-              <span className="text-[#9BA8A0] text-xs">•</span>
               <span className="text-xs text-[#53615A]">{item.date}</span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-bold text-[#161B19] tracking-tight">
-              {item.theme}
-            </h1>
-          </div>
-
-          <span className="text-xs font-semibold px-2.5 py-1 rounded bg-[#EFF3EF] text-[#123D32] border border-[#CED9D0] self-start">
-            {item.source}
-          </span>
-        </div>
-
-        {/* Original Verbatim Content */}
-        <div>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#53615A] block mb-1.5">
-            Verbatim Customer Quote
-          </span>
-          <div className="text-sm text-[#161B19] italic leading-relaxed border-l-3 border-[#123D32] bg-[#F8FAF7] p-4 rounded-r-lg border-y border-r border-[#DCE4DD]">
-            &ldquo;{item.content.replace(/^"|"$/g, '')}&rdquo;
-          </div>
-        </div>
-
-        {/* Summary */}
-        {item.summary && item.summary !== item.content && (
-          <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#53615A] block mb-1.5">
-              Concise Summary
-            </span>
-            <p className="text-xs sm:text-sm text-[#161B19] leading-relaxed bg-[#F8FAF7] p-3.5 rounded-lg border border-[#DCE4DD]">
-              {item.summary}
-            </p>
-          </div>
-        )}
-
-        {/* Metadata Grid */}
-        <div className="p-4 rounded-xl bg-[#F8FAF7] border border-[#DCE4DD] grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div>
-            <span className="font-semibold text-[#161B19] block mb-1">
-              Classified Theme (Click to view cluster)
-            </span>
             <button
+              type="button"
               onClick={() => openDrilldown(item.theme)}
-              className="font-semibold text-[#123D32] hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-lg font-bold text-[#161B19] hover:text-[#123D32] text-left cursor-pointer"
             >
-              <Layers className="w-3.5 h-3.5 text-[#6F9B86] shrink-0" />
               {item.theme}
             </button>
           </div>
 
-          <div className="space-y-1 text-[11px] text-[#53615A]">
-            <div className="flex justify-between">
-              <span className="font-medium text-[#161B19]">Channel:</span>
-              <span>{item.source} (Seeded Example)</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium text-[#161B19]">Sentiment:</span>
-              <span className={`px-1.5 py-0.2 rounded border capitalize ${getSentimentBadge(item.sentiment)}`}>
-                {item.sentiment === 'needs_attention' ? 'Needs Attention' : item.sentiment}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium text-[#161B19]">Flagged Marker:</span>
-              <span>{item.isFlagged ? 'Yes — Marked for human review' : 'No'}</span>
-            </div>
-          </div>
+          <span className="text-xs font-medium px-2.5 py-1 rounded bg-[#F8FAF7] text-[#53615A] border border-[#DCE4DD]">
+            {item.source}
+          </span>
         </div>
 
-        {/* Related Records — same theme */}
+        {/* Full Feedback Quote */}
+        <div className="text-sm text-[#161B19] leading-relaxed border-l-3 border-[#B89B72] bg-[#F8FAF7] p-4 rounded-r-lg">
+          &ldquo;{item.content.replace(/^"|"$/g, '')}&rdquo;
+        </div>
+
+        {item.summary && item.summary !== item.content && (
+          <p className="text-xs text-[#53615A] leading-relaxed">
+            <strong className="text-[#161B19]">Summary:</strong> {item.summary}
+          </p>
+        )}
+
+        {/* Related Feedback in Same Topic */}
         {relatedItems.length > 0 && (
-          <div className="pt-3 border-t border-[#EFF3EF]">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#53615A] block mb-2.5">
-              Other Records in This Theme ({relatedItems.length})
+          <div className="pt-3 border-t border-[#EFF3EF] space-y-2">
+            <span className="text-xs font-semibold text-[#53615A] block">
+              Related Feedback in {item.theme}
             </span>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {relatedItems.map((sim) => (
                 <Link
                   key={sim.id}
                   href={`/feedback/${sim.id}`}
-                  className="p-3 rounded-lg border border-[#DCE4DD] hover:border-[#123D32] hover:bg-[#F8FAF7] transition-all flex items-center justify-between text-xs group"
+                  className="p-2.5 rounded-lg border border-[#DCE4DD] hover:border-[#B89B72] bg-[#F8FAF7] flex items-center justify-between text-xs group"
                 >
-                  <div className="min-w-0 pr-3">
-                    <span className="font-mono font-bold text-[#161B19] group-hover:text-[#123D32] transition-colors">
-                      Feedback #{sim.id} ({sim.source})
+                  <div className="min-w-0 pr-3 flex items-center gap-2">
+                    <span className="font-mono font-bold text-[#161B19] shrink-0">
+                      #{sim.id}
                     </span>
-                    <span className="text-[#53615A] block text-[11px] mt-0.5 truncate">
+                    <span className="text-[#53615A] truncate">
                       {sim.summary || sim.content}
                     </span>
                   </div>
@@ -328,7 +264,6 @@ export default function FeedbackDetailClient({ id }: FeedbackDetailClientProps) 
         )}
       </div>
 
-      {/* Drilldown Modal */}
       <ThemeDrilldownModal
         theme={drilldownTheme}
         isOpen={isModalOpen}
