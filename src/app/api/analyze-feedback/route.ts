@@ -397,7 +397,9 @@ export async function POST(request: NextRequest) {
 
   // ---- 3. Failure simulation (assignment testing only) ----
   if (shouldSimulateFailure(userEmail)) {
-    console.error('[AI Analysis] [SIMULATED FAILURE] Triggered for:', userEmail);
+    console.error(
+      `[AI Analysis] ERROR 503 Service Unavailable | endpoint=/api/analyze-feedback | upstream=https://openrouter.ai/api/v1/chat/completions | model=${FREE_MODELS[0]} | auth=verified | reason="OpenRouter model unavailable or rate-limited (SIMULATE_AI_FAILURE=true)"`
+    );
     return NextResponse.json(
       {
         error:
@@ -582,7 +584,7 @@ export async function POST(request: NextRequest) {
           : 'These are AI-assisted suggestions based only on the provided feedback records. They are not verified facts and should be reviewed by a product team member before action.';
 
       console.log(
-        `[AI Analysis] Success model=${modelId} user=${userEmail} records=${feedbackRows.length} issues_validated=${validatedIssues.length} finish_reason=${finishReason}`
+        `[AI Analysis] OK 200 | model=${modelId} | auth=verified | records=${feedbackRows.length} | issues_validated=${validatedIssues.length} | finish_reason=${finishReason}`
       );
 
       return NextResponse.json({
@@ -610,7 +612,7 @@ export async function POST(request: NextRequest) {
   }
 
   console.error(
-    `[AI Analysis] All free models exhausted for user=${userEmail}. Last error: ${lastErrorMessage}`
+    `[AI Analysis] ERROR ${lastErrorStatus} | endpoint=/api/analyze-feedback | auth=verified | reason="All free models exhausted: ${lastErrorMessage}"`
   );
   return NextResponse.json({ error: lastErrorMessage }, { status: lastErrorStatus });
 }

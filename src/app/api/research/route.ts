@@ -87,7 +87,9 @@ export async function GET(request: NextRequest) {
 
   // ---- 3. Failure simulation (assignment testing only) ----
   if (shouldSimulateFailure(userEmail)) {
-    console.error('[Research API] [SIMULATED FAILURE] Triggered for:', userEmail);
+    console.error(
+      `[Research API] ERROR 503 Service Unavailable | endpoint=/api/research | upstream=https://api.openalex.org/works | query="${rawQuery}" | auth=verified | reason="OpenAlex upstream service unreachable (SIMULATE_RESEARCH_FAILURE=true)"`
+    );
     return NextResponse.json(
       {
         error:
@@ -238,7 +240,7 @@ export async function GET(request: NextRequest) {
   });
 
   console.log(
-    `[Research API] Query="${rawQuery}" user=${userEmail} results=${works.length}`
+    `[Research API] OK 200 | endpoint=/api/research | query="${rawQuery}" | auth=verified | results=${works.length}`
   );
 
   return NextResponse.json({
